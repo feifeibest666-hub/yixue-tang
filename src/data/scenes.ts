@@ -1,16 +1,18 @@
+const ART = `${import.meta.env?.BASE_URL ?? '/'}art/`
+
 export const SCENE = {
-  welcome: '/art/hero-welcome.webp',
-  tian: '/art/scene-tian.webp',
-  di: '/art/scene-di.webp',
-  lei: '/art/scene-lei.webp',
-  shan: '/art/scene-shan.webp',
-  shui: '/art/scene-shui.webp',
-  huo: '/art/scene-huo.webp',
-  feng: '/art/scene-feng.webp',
-  ze: '/art/scene-ze.webp',
-  yinyang: '/art/scene-yinyang.webp',
-  meihua: '/art/scene-meihua.webp',
-  book: '/art/scene-book.webp',
+  welcome: `${ART}hero-welcome.webp`,
+  tian: `${ART}scene-tian.webp`,
+  di: `${ART}scene-di.webp`,
+  lei: `${ART}scene-lei.webp`,
+  shan: `${ART}scene-shan.webp`,
+  shui: `${ART}scene-shui.webp`,
+  huo: `${ART}scene-huo.webp`,
+  feng: `${ART}scene-feng.webp`,
+  ze: `${ART}scene-ze.webp`,
+  yinyang: `${ART}scene-yinyang.webp`,
+  meihua: `${ART}scene-meihua.webp`,
+  book: `${ART}scene-book.webp`,
 } as const
 
 export type SceneKey = keyof typeof SCENE
