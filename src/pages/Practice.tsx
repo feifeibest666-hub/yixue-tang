@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { ALL_CARDS, cardById, seededShuffle, type StudyCard } from '../data/cards'
 import { clearWrong, dueCards, reviewCard, todayStr, useStore, wrongCards, getState } from '../lib/store'
 import { Hex } from '../components/Hex'
-import { lessonByDay } from '../data/curriculum'
+import { lessonByDay, lessonLabel } from '../data/curriculum'
 
 type Deck = 'bagua' | 'gua64'
 const DECK_NAME: Record<Deck, string> = { bagua: '八卦', gua64: '六十四卦' }
@@ -157,7 +157,7 @@ function WrongBook() {
         if (!q) return null
         return (
           <div key={k} className="card">
-            <div className="muted">第 {w.day} 课 · 错 {w.count} 次 · 最近 {w.last === todayStr() ? '今天' : w.last}</div>
+            <div className="muted">{lessonByDay(w.day) ? lessonLabel(lessonByDay(w.day)!) : `第 ${w.day} 课`} · 错 {w.count} 次 · 最近 {w.last === todayStr() ? '今天' : w.last}</div>
             <p><b>{q.q}</b></p>
             <p>答案：<b className="ok-text">{q.opts[q.a]}</b></p>
             <p className="bai">{q.ex}</p>

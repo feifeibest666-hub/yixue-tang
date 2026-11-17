@@ -1,10 +1,11 @@
 import { motion } from 'motion/react'
-import { LESSONS, UNITS } from '../data/curriculum'
+import { ELECTIVES, ELECTIVE_UNITS, LESSONS, UNITS } from '../data/curriculum'
 import { SCENE } from '../data/scenes'
 
 export function LearningMap({ completed, current }: { completed: Record<number, string>; current: number | null }) {
   const curUnit = current ? LESSONS.find((l) => l.day === current)?.unit : undefined
   return (
+    <>
     <ol className="lmap">
       {UNITS.map((u, i) => {
         const ls = LESSONS.filter((l) => l.unit === u.id)
@@ -31,5 +32,23 @@ export function LearningMap({ completed, current }: { completed: Record<number, 
         )
       })}
     </ol>
+    <div className="lm-side">
+      <div className="lm-side-h">选修 · 随时穿插</div>
+      <div className="lm-side-row">
+        {ELECTIVE_UNITS.map((u) => {
+          const ls = ELECTIVES.filter((l) => l.unit === u.id)
+          const done = ls.filter((l) => completed[l.day]).length
+          const open = u.id === 'x1' ? Boolean(completed[30]) : ELECTIVES.filter((l) => l.unit === 'x1').every((l) => completed[l.day])
+          return (
+            <a key={u.id} className={`lm-side-card ${open ? '' : 'locked'}`} href="#/course">
+              <img src={SCENE[u.scene]} alt="" loading="lazy" />
+              <b>{u.name.replace('选修 · ', '')}</b>
+              <span>{open ? `${done}/${ls.length} 课` : u.id === 'x1' ? '第 30 天后开放' : '原理学完后开放'}</span>
+            </a>
+          )
+        })}
+      </div>
+    </div>
+    </>
   )
 }

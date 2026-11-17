@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { TOTAL_DAYS } from '../data/curriculum'
+import { ELECTIVES, TOTAL_DAYS } from '../data/curriculum'
 
 export interface Card { box: number; due: string; lapses: number; seen: number }
 export interface WrongQ { day: number; idx: number; count: number; last: string }
@@ -74,7 +74,17 @@ export function scheduleInfo(s: State, today = todayStr()) {
   let next = 1
   while (next <= TOTAL_DAYS && done(next)) next++
   const unlockedUpTo = Math.max(dayByCalendar, next)
-  return { dayByCalendar, missed, todayLesson, next: next > TOTAL_DAYS ? null : next, unlockedUpTo, doneCount: Object.keys(s.completed).length }
+  return { dayByCalendar, missed, todayLesson, next: next > TOTAL_DAYS ? null : next, unlockedUpTo, doneCount: Object.keys(s.completed).filter((d) => Number(d) <= TOTAL_DAYS).length }
+}
+
+/** 选修：学完第 30 天后开放原理；原理全部学完后开放梅花；各模块内按顺序 */
+export function isUnlocked(s: State, day: number) {
+  if (day <= TOTAL_DAYS) return day <= scheduleInfo(s).unlockedUpTo
+  const l = ELECTIVES.find((x) => x.day === day)
+  if (!l || !s.completed[30]) return false
+  const mod = ELECTIVES.filter((x) => x.unit === l.unit)
+  const prereq = l.unit === 'x2' ? ELECTIVES.filter((x) => x.unit === 'x1') : []
+  return [...prereq, ...mod.filter((x) => x.day < day)].every((x) => s.completed[x.day])
 }
 
 export function completeLesson(day: number) {

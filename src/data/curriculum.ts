@@ -1,4 +1,6 @@
-import { HEXAGRAMS } from './bagua'
+import { HEXAGRAMS, yaoTitle } from './bagua'
+import { GUA_NOTES } from './guaNotes'
+import { TRIGRAM_SCENE } from './scenes'
 import type { SceneKey } from './scenes'
 
 export type WidgetName =
@@ -16,6 +18,8 @@ export interface Quiz { q: string; opts: string[]; a: number; ex: string }
 export interface Lesson {
   day: number; unit: string; title: string; subtitle: string; scene: SceneKey
   minutes: number; goal: string; screens: Screen[]; quiz: Quiz[]
+  /** 选修课的编号，如“原理 3”；主线课没有 */
+  elective?: string
 }
 
 const T = (title: string, body: string, tag?: Tag): Screen => ({ t: 'text', title, body, tag })
@@ -27,14 +31,20 @@ const L = (
   screens: Screen[], quiz: Quiz[], minutes = 12,
 ): Lesson => ({ day, unit, scene, title, subtitle, goal, screens, quiz, minutes })
 
-export const UNITS = [
-  { id: 'u1', name: '打地基', range: '第 1–7 天', desc: '《周易》是什么、阴阳、爻、从一条线到八卦', scene: 'yinyang' as SceneKey },
-  { id: 'u2', name: '认八卦', range: '第 8–14 天', desc: '从线形推出八卦的含义，三秒认卦', scene: 'shan' as SceneKey },
-  { id: 'u3', name: '六十四卦', range: '第 15–21 天', desc: '上下两卦、内外、读名、爻名、卦辞常用词', scene: 'tian' as SceneKey },
-  { id: 'u4', name: '读第一批卦', range: '第 22–30 天', desc: '乾、坤、屯、蒙、需、讼、师、比', scene: 'book' as SceneKey },
-  { id: 'u5', name: '原理进阶', range: '第 31–43 天', desc: '先天数、两种方位、五行、类象、爻位、互卦变卦的来历', scene: 'shui' as SceneKey },
-  { id: 'u6', name: '梅花易数', range: '第 44–53 天', desc: '起卦为何除以 8 和 6、体用为何这样定、怎样复盘', scene: 'meihua' as SceneKey },
-  { id: 'u7', name: '六十四卦巡读', range: '第 54–61 天', desc: '每天七卦，把剩下的卦都见一遍', scene: 'ze' as SceneKey },
+export interface Unit { id: string; name: string; range: string; desc: string; scene: SceneKey }
+
+export const UNITS: Unit[] = [
+  { id: 'u1', name: '打地基', range: '第 1–7 天', desc: '《周易》是什么、阴阳、爻、从一条线到八卦', scene: 'yinyang' },
+  { id: 'u2', name: '认八卦', range: '第 8–14 天', desc: '从线形推出八卦的含义，三秒认卦', scene: 'shan' },
+  { id: 'u3', name: '六十四卦', range: '第 15–21 天', desc: '上下两卦、内外、读名、爻名、卦辞常用词', scene: 'tian' },
+  { id: 'u4', name: '读第一批卦', range: '第 22–30 天', desc: '乾、坤、屯、蒙、需、讼、师、比', scene: 'book' },
+  { id: 'u5', name: '上经 · 每天一卦', range: '第 31–52 天', desc: '小畜到离：先拆上下卦推出卦义，再读原文', scene: 'feng' },
+  { id: 'u6', name: '下经 · 每天一卦', range: '第 53–86 天', desc: '咸到未济：每周再扔一次硬币起卦', scene: 'ze' },
+]
+
+export const ELECTIVE_UNITS: Unit[] = [
+  { id: 'x1', name: '选修 · 原理', range: '学完第 30 天后开放 · 13 课', desc: '先天数、两种方位、五行、类象、爻位、互卦变卦的来历', scene: 'shui' },
+  { id: 'x2', name: '选修 · 梅花易数', range: '学完原理选修后开放 · 10 课', desc: '起卦为何除以 8 和 6、体用为何这样定、怎样复盘', scene: 'meihua' },
 ]
 
 const base: Lesson[] = [
@@ -267,7 +277,7 @@ const base: Lesson[] = [
     T('四个步骤', '1. 扔 6 次硬币：正面阳、反面阴，**从下往上**画。\n2. **前 3 次**是下卦，**后 3 次**是上卦（为什么？先有的在下）。\n3. 查卦表：下卦找**行**，上卦找**列**。\n4. 读全名：上象 + 下象 + 卦名。'),
     W('coin6', '扔六次'),
     W('lookup', '查卦表'),
-    T('说明', '这仍是练习版。正式起卦方法（如梅花易数用时间、数字）在第 44 天以后学，到时你会发现原理相同：**得到六条爻 → 拆成上下卦 → 查卦**。', '约定'),
+    T('说明', '这仍是练习版。正式起卦方法（如梅花易数用时间、数字）在「选修 · 梅花易数」里学，到时你会发现原理相同：**得到六条爻 → 拆成上下卦 → 查卦**。', '约定'),
   ], [
     Q('第 1 次扔出的结果画在？', ['最下面', '最上面'], 0, '从下往上。'),
     Q('后 3 次组成？', ['上卦', '下卦'], 0, '前 3 次下卦，后 3 次上卦。'),
@@ -365,7 +375,7 @@ const base: Lesson[] = [
   L(30, 'u4', 'book', '一个月总复习', '你已经看懂《周易》的字母表', '串起一个月所学，完成自测', [
     T('一张图串起来', '阴阳（两种性质）→ 爻（一个开关）→ 三爻八卦（地人天，看少数派）→ 两卦重叠成六十四卦（内外、上下）→ 爻名（位置 + 九六）→ 卦辞爻辞（常用词）。', '小结'),
     T('前 8 卦是一个故事', '乾坤：天地开辟\n屯：万物初生，艰难\n蒙：初生蒙昧，需要启蒙\n需：成长需要等待和养育\n讼：有了需求就会有争执\n师：争执扩大，需要组织众人\n比：众人团结亲附\n\n这是《序卦传》对卦序的解释——注意，卦序是否真有这样的逻辑，历代看法不一。', '约定'),
-    T('自测标准', '✔ 能讲出阴阳的三个特点\n✔ 3 秒认出八卦，并说出推理\n✔ 会拆卦、读全名、读爻名\n✔ 知道 11 个常用词\n✔ 能讲出前 8 卦每卦的上下卦和大意\n\n达到就可以进入“原理进阶”。'),
+    T('自测标准', '✔ 能讲出阴阳的三个特点\n✔ 3 秒认出八卦，并说出推理\n✔ 会拆卦、读全名、读爻名\n✔ 知道 11 个常用词\n✔ 能讲出前 8 卦每卦的上下卦和大意\n\n明天起每天读一卦，从第 9 卦小畜开始，用同样的方法：先拆卦推义，再读原文。\n想多钻原理的话，「选修 · 原理」现在已经开放，随时可以穿插着学。'),
     W('coin6', '最后再起一卦，用一个月的知识读一读'),
   ], [
     Q('三爻从下到上是？', ['地人天', '天人地'], 0, '下地中人上天。'),
@@ -375,7 +385,7 @@ const base: Lesson[] = [
     Q('“吝”的意思是？', ['小有困难、遗憾', '吝啬'], 0, '吝=小麻烦。'),
   ], 15),
 
-  // ───────── 第五阶段：原理进阶（第 31–43 天） ─────────
+  // ───────── 选修 · 原理（原第 31–43 课，编号 101–113） ─────────
   L(31, 'u5', 'yinyang', '先天八卦数：为什么是乾一兑二', '不用背，按生长顺序数出来', '能从“加一倍”推出先天数', [
     T('还记得生长图吗', '太极 → 两仪 → 四象 → 八卦，每一层**一分为二**，阳在前、阴在后。\n\n宋代邵雍把这个过程叫“**加一倍法**”。'),
     W('sixiangScene', '先回忆：两条线的四象'),
@@ -609,27 +619,74 @@ const base: Lesson[] = [
   ], 12),
 ]
 
-// 第七阶段：六十四卦巡读（第 9–64 卦，每天 7 卦）
-const tour: Lesson[] = []
-const tourScenes: SceneKey[] = ['feng', 'ze', 'lei', 'shan', 'huo', 'shui', 'tian', 'di']
-for (let i = 8; i < 64; i += 7) {
-  const day = 54 + (i - 8) / 7
-  const group = HEXAGRAMS.slice(i, i + 7)
-  const screens: Screen[] = [
-    T('读法', '每一卦先**拆卦**：看上下卦的象和性情，自己推一推卦义，再看原文和白话对照。\n\n今天的卦：\n' + group.map((h) => `第 ${h.n} 卦 **${h.name}**（${h.fullName}）`).join('\n'), '为什么'),
-    ...group.map((h) => H(h.n, `${h.n}. ${h.fullName}`)),
-  ]
-  const quiz: Quiz[] = group.slice(0, 4).map((h, k) => {
-    const others = HEXAGRAMS.filter((x) => x.n !== h.n)
-    const pick = [others[(h.n * 7 + k) % 63], others[(h.n * 13 + 5) % 63]].filter((x, j, arr) => arr.indexOf(x) === j)
-    const opts = [h.fullName, ...pick.map((x) => x.fullName)]
-    return Q(`「${h.name}」卦的全名是？`, opts, 0, `上${h.upper.name}（${h.upper.nature}）下${h.lower.name}（${h.lower.nature}），读作${h.fullName}。`)
-  })
-  const last = group[group.length - 1]
-  quiz.push(Q(`「${last.name}」卦的大意是？`, [last.gist, HEXAGRAMS[(last.n + 20) % 64].gist], 0, `${last.name}：${last.gist}`))
-  tour.push(L(day, 'u7', tourScenes[(day - 54) % tourScenes.length], `巡读：${group.map((h) => h.name).join('、')}`, `第 ${group[0].n}–${last.n} 卦`, `拆卦推义，读第 ${group[0].n}–${last.n} 卦`, screens, quiz, 15))
+// ───────── 第 31–86 天：每天一卦（第 9–64 卦，与每日讲义同序） ─────────
+function minority(lines: number[]) {
+  const yang = lines.filter((l) => l === 1).length
+  if (yang === 1) return { i: lines.indexOf(1), kind: '阳' }
+  if (yang === 5) return { i: lines.indexOf(0), kind: '阴' }
+  return null
+}
+function partnerOf(n: number) {
+  const m = n % 2 === 1 ? n + 1 : n - 1
+  const h = HEXAGRAMS[n - 1], p = HEXAGRAMS[m - 1]
+  const reversed = h.lines.slice().reverse().join('') === p.lines.join('')
+  const flipped = h.lines.map((l) => 1 - l).join('') === p.lines.join('')
+  const kind = reversed && flipped ? 'both' : reversed ? 'rev' : 'flip'
+  const rel = kind === 'both' ? '既是上下颠倒，又是六爻阴阳全反（两种关系同时成立）' : kind === 'rev' ? '上下颠倒（把卦倒过来看）' : '六爻阴阳全反（倒过来还是自己，只好全反）'
+  return { p, rel, kind }
 }
 
-export const LESSONS: Lesson[] = [...base, ...tour]
+const guaDays: Lesson[] = HEXAGRAMS.slice(8).map((h) => {
+  const note = GUA_NOTES[h.n]
+  const day = h.n + 22
+  const lo = h.lower, up = h.upper
+  const mino = minority(h.lines)
+  const { p, rel, kind } = partnerOf(h.n)
+  const pure = lo.name === up.name
+  const split = pure
+    ? `上下都是${lo.name}（${lo.nature}，${lo.trait}）：同一个象重叠两次，意思加倍。`
+    : `下卦${lo.name}（${lo.nature}，${lo.trait}）在内——自己、开始；\n上卦${up.name}（${up.nature}，${up.trait}）在外——外界、后来。`
+  const clues = [
+    mino ? `**少者为主**：全卦只有 ${yaoTitle(mino.i, h.lines[mino.i])} 一个${mino.kind}爻，它是全卦的主角。` : '',
+    `**成对看**：第 ${h.n} 卦和第 ${p.n} 卦 ${p.name} 是一对，两者${rel}。六十四卦就是这样两两成对排下来的，唐代孔颖达概括为“**二二相耦，非覆即变**”：不是颠倒，就是全反。`,
+    `**大象**：“${h.xiang}”`,
+  ].filter(Boolean).join('\n\n')
+  const screens: Screen[] = [
+    T('先拆卦', split + '\n\n先别看答案，自己想一想：这两个象放在一起，会是什么局面？', '为什么'),
+    T('推出卦义', note.why, '为什么'),
+    ...(h.n === 11 || h.n === 12 ? [W('taipi', '再看一次：天地之气交与不交')] : []),
+    T('结构上的线索', clues, '小结'),
+    H(h.n, '原文与白话'),
+  ]
+  if (day % 7 === 0) {
+    screens.push(W('coin6', '每周一练：扔硬币起一卦', '路线建议第二个月起每周起一次卦。起出来以后先拆卦，自己推一推，再点开看原文。'))
+  }
+  const wrongTri = HEXAGRAMS[(h.n * 5) % 64]
+  const quiz: Quiz[] = [
+    Q(`${h.name}卦的下卦和上卦是？`,
+      pure ? [`上下都是${lo.name}（${lo.nature}）`, `上下都是${wrongTri.upper.name === lo.name ? wrongTri.lower.name : wrongTri.upper.name}`]
+        : [`下${lo.name}（${lo.nature}）上${up.name}（${up.nature}）`, `下${up.name}（${up.nature}）上${lo.name}（${lo.nature}）`],
+      0, `全名“${h.fullName}”：先读上卦的象，再读下卦的象。`),
+    Q(`${h.name}卦讲的是？`, [h.gist, HEXAGRAMS[(h.n + 23) % 64].gist], 0, `${note.t}。`),
+    mino
+      ? Q(`${h.name}卦的主爻（少数派）是？`, [yaoTitle(mino.i, h.lines[mino.i]), yaoTitle((mino.i + 3) % 6, h.lines[(mino.i + 3) % 6])], 0, `只有它一个${mino.kind}爻，少者为主。`)
+      : Q(`${h.name}和${p.name}是什么关系？`, kind === 'both' ? ['颠倒、全反两种都成立', '只是上下颠倒'] : kind === 'rev' ? ['上下颠倒', '阴阳全反'] : ['阴阳全反', '上下颠倒'], 0, `把两卦画出来比一比：${rel}。`),
+  ]
+  return L(day, h.n <= 30 ? 'u5' : 'u6', TRIGRAM_SCENE[up.name], `第 ${h.n} 卦 · ${h.fullName}：${note.t}`, note.sub,
+    `拆开${up.name}与${lo.name}，推出“${h.name}”的含义，再读原文`, screens, quiz, 14)
+})
+
+const electives: Lesson[] = base.filter((l) => l.day >= 31).map((l) => {
+  const inPrinciples = l.unit === 'u5'
+  const k = inPrinciples ? l.day - 30 : l.day - 43
+  return { ...l, day: l.day + 70, unit: inPrinciples ? 'x1' : 'x2', elective: `${inPrinciples ? '原理' : '梅花'} ${k}` }
+})
+
+/** 主线：每天一课（第 1–86 天） */
+export const LESSONS: Lesson[] = [...base.filter((l) => l.day <= 30), ...guaDays]
 export const TOTAL_DAYS = LESSONS.length
-export const lessonByDay = (d: number) => LESSONS.find((l) => l.day === d)
+/** 选修：原理 101–113，梅花 114–123 */
+export const ELECTIVES: Lesson[] = electives
+export const ALL_LESSONS: Lesson[] = [...LESSONS, ...ELECTIVES]
+export const lessonByDay = (d: number) => ALL_LESSONS.find((l) => l.day === d)
+export const lessonLabel = (l: Lesson) => l.elective ?? `第 ${l.day} 天`

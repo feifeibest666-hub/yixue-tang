@@ -1,4 +1,4 @@
-import { LESSONS, UNITS, type Lesson, type Screen, type WidgetName } from '../data/curriculum'
+import { ELECTIVES, ELECTIVE_UNITS, LESSONS, UNITS, lessonLabel, type Lesson, type Screen, type WidgetName } from '../data/curriculum'
 import { HEXAGRAMS } from '../data/bagua'
 import { Rich } from '../components/Hex'
 
@@ -32,7 +32,7 @@ function screenMd(s: Screen): string {
 
 export function lessonMd(l: Lesson) {
   return [
-    `## 第 ${l.day} 天 · ${l.title}`,
+    `## ${lessonLabel(l)} · ${l.title}`,
     `*${l.subtitle}*\n\n学习目标：${l.goal}（约 ${l.minutes} 分钟）\n`,
     ...l.screens.map(screenMd),
     `### 练习`,
@@ -42,7 +42,7 @@ export function lessonMd(l: Lesson) {
 }
 
 export function allMd() {
-  return `# 周易 · 梅花易数入门 每日讲义\n\n` + UNITS.map((u) => `# ${u.name}\n\n${u.desc}\n\n` + LESSONS.filter((l) => l.unit === u.id).map(lessonMd).join('\n---\n\n')).join('\n')
+  return `# 周易 · 梅花易数入门 每日讲义\n\n` + [...UNITS, ...ELECTIVE_UNITS].map((u) => `# ${u.name}\n\n${u.desc}\n\n` + [...LESSONS, ...ELECTIVES].filter((l) => l.unit === u.id).map(lessonMd).join('\n---\n\n')).join('\n')
 }
 
 const download = (name: string, text: string) => {
@@ -57,17 +57,17 @@ export function HandoutPage() {
     <div className="page handout">
       <header className="lesson-head no-print">
         <a href="#/course" className="back">‹</a>
-        <div className="lh-mid"><div className="lh-day">共 {LESSONS.length} 天</div><div className="lh-title">每日讲义</div></div>
+        <div className="lh-mid"><div className="lh-day">主线 {LESSONS.length} 天 · 选修 {ELECTIVES.length} 课</div><div className="lh-title">每日讲义</div></div>
       </header>
       <div className="row no-print">
         <button className="btn primary grow" onClick={() => download('周易入门-每日讲义.md', allMd())}>下载全部（Markdown）</button>
         <button className="btn ghost grow" onClick={() => window.print()}>打印 / 存为 PDF</button>
       </div>
-      {LESSONS.map((l) => (
+      {[...LESSONS, ...ELECTIVES].map((l) => (
         <article key={l.day} className="card ho-day">
           <div className="ho-head">
-            <h2>第 {l.day} 天 · {l.title}</h2>
-            <button className="btn ghost sm no-print" onClick={() => download(`第${l.day}天-${l.title}.md`, lessonMd(l))}>下载本天</button>
+            <h2>{lessonLabel(l)} · {l.title}</h2>
+            <button className="btn ghost sm no-print" onClick={() => download(`${lessonLabel(l).replace(/\s/g, '')}-${l.title}.md`, lessonMd(l))}>下载本天</button>
           </div>
           <div className="muted">🎯 {l.goal} · 约 {l.minutes} 分钟</div>
           {l.screens.map((s, i) => (

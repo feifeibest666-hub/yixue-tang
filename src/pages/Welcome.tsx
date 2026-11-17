@@ -6,7 +6,7 @@ import { LearningMap } from '../components/LearningMap'
 const PROMISES = [
   { k: '一', t: '每天一课，十分钟', d: '按顺序解锁，漏了可以补' },
   { k: '二', t: '先懂为什么，再记结论', d: '每个规则都讲来历，约定俗成的会明说' },
-  { k: '三', t: '从一条线学到梅花易数', d: '阴阳 → 八卦 → 六十四卦 → 起卦断卦' },
+  { k: '三', t: '从一条线读完六十四卦', d: '阴阳 → 八卦 → 每天一卦；原理与梅花易数在选修里' },
 ]
 
 export function WelcomePage() {
@@ -40,7 +40,7 @@ export function WelcomePage() {
         </ul>
 
         <h2 className="section-title">学习地图</h2>
-        <p className="muted center">七个阶段，六十一天。你会从第一站出发。</p>
+        <p className="muted center">主线六个阶段、八十六天，读完六十四卦；原理与梅花易数是两门选修。你会从第一站出发。</p>
         <LearningMap completed={{}} current={1} />
 
         <button className="link-btn center-block" onClick={skip}>我已经学过一些，直接进入</button>

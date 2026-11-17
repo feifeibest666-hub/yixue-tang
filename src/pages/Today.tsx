@@ -50,7 +50,7 @@ export function TodayPage() {
           {!current && <div className="tc-stamp">已打卡</div>}
         </motion.a>
       )}
-      {!show && <div className="card center"><div className="tc-stamp static">圆满</div><h2>六十一天全部学完</h2></div>}
+      {!show && <div className="card center"><div className="tc-stamp static">圆满</div><h2>{TOTAL_DAYS} 天主线全部学完</h2></div>}
 
       <div className="stat-row">
         <div><b>{info.doneCount}</b><span>已学</span></div>
@@ -78,7 +78,7 @@ export function TodayPage() {
             <a href="#/practice/review">{Object.keys(s.cards).length === 0 ? '翻十张八卦卡片' : due > 0 ? `温习到期卡片 ${due} 张` : '今日卡片已温习'}</a>
           </li>
           {wrongN > 0 && <li><span className="tick" /><a href="#/practice/wrong">回看错题 {wrongN} 道</a></li>}
-          {info.dayByCalendar >= 44 && <li><span className="tick" /><a href="#/divine">选做：起一卦，写下推断</a></li>}
+          {Object.keys(s.completed).some((d) => Number(d) >= 114) && <li><span className="tick" /><a href="#/divine">选做：起一卦，写下推断</a></li>}
         </ul>
       </section>
 

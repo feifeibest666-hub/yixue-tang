@@ -1,6 +1,7 @@
 import { HEXAGRAMS, TRIGRAMS } from '../src/data/bagua'
 import { BAIHUA } from '../src/data/baihua'
-import { LESSONS } from '../src/data/curriculum'
+import { ALL_LESSONS, ELECTIVES, LESSONS } from '../src/data/curriculum'
+import { GUA_NOTES } from '../src/data/guaNotes'
 import { ALL_CARDS } from '../src/data/cards'
 import { castByNumber, castByTime } from '../src/lib/meihua'
 import { PINYIN } from '../src/pages/Atlas'
@@ -41,10 +42,19 @@ console.log(t.steps.slice(0, 5).join('\n'))
 ok(t.ben.name === '革' && t.moving === 1 && t.hu.name === '姤' && t.bian.name === '咸', `观梅占 ${t.ben.name} ${t.moving} ${t.hu.name} ${t.bian.name}`)
 ok(t.ti.name === '兑' && t.yong.name === '离' && t.relation === '用克体', '观梅 体用 ' + t.relation)
 
-// 课程
-ok(LESSONS.length >= 60, '课程天数 ' + LESSONS.length)
-LESSONS.forEach((l, i) => {
-  ok(l.day === i + 1, '天数连续 ' + l.day)
+// 课程：主线 86 天（第 22–86 天依通行本卦序每天一卦），选修 101–123
+ok(LESSONS.length === 86, '主线天数 ' + LESSONS.length)
+LESSONS.forEach((l, i) => ok(l.day === i + 1 && !l.elective, '主线天数连续 ' + l.day))
+for (let n = 1; n <= 64; n++) {
+  const day = n <= 8 ? n + 21 : n + 22
+  const l = LESSONS[day - 1]
+  ok(l.title.includes(`第 ${n} 卦`) && l.screens.some((x) => x.t === 'hex' && x.n === n), `第 ${day} 天应讲第 ${n} 卦：${l.title}`)
+}
+for (let n = 9; n <= 64; n++) ok(Boolean(GUA_NOTES[n]?.why), '缺少卦注 ' + n)
+ok(ELECTIVES.length === 23, '选修课数 ' + ELECTIVES.length)
+ELECTIVES.forEach((l, i) => ok(l.day === 101 + i && Boolean(l.elective), '选修编号 ' + l.day))
+ok(new Set(ALL_LESSONS.map((l) => l.day)).size === ALL_LESSONS.length, '课号唯一')
+ALL_LESSONS.forEach((l) => {
   ok(l.quiz.length >= 1 && l.quiz.length <= 5, `第${l.day}课题数 ${l.quiz.length}`)
   l.quiz.forEach((q, k) => {
     ok(q.a >= 0 && q.a < q.opts.length, `第${l.day}课第${k + 1}题答案越界`)
@@ -52,4 +62,4 @@ LESSONS.forEach((l, i) => {
   })
 })
 ALL_CARDS.forEach((c) => ok(c.options.includes(c.answer) && new Set(c.options).size === c.options.length && c.options.length >= 2, '卡片选项 ' + c.id))
-console.log(fail ? `${fail} 项失败` : '全部通过', '· 课程', LESSONS.length, '天 · 卡片', ALL_CARDS.length)
+console.log(fail ? `${fail} 项失败` : '全部通过', '· 主线', LESSONS.length, '天 · 选修', ELECTIVES.length, '课 · 卡片', ALL_CARDS.length)
