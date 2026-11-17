@@ -1,13 +1,17 @@
-import { LESSONS, UNITS, type Lesson, type Screen } from '../data/curriculum'
+import { LESSONS, UNITS, type Lesson, type Screen, type WidgetName } from '../data/curriculum'
 import { HEXAGRAMS } from '../data/bagua'
 import { Rich } from '../components/Hex'
 
-const WIDGET_NOTE: Record<string, string> = {
+const WIDGET_NOTE: Record<WidgetName, string> = {
   yinyangSort: '【互动】阴阳分类小练习（见应用）',
-  yaoToggle: '【互动】点击切换阳爻 ⚊ / 阴爻 ⚋（见应用）',
-  stack2: '【互动】叠两根线：四象（见应用）',
-  stack3: '【互动】叠三根线：八卦（见应用）',
-  stack6: '【互动】叠六根线：2→4→8→16→32→64（见应用）',
+  taiji: '【图】太极图：阴中有阳、阳中有阴（见应用）',
+  yaoBrush: '【互动】一笔写出阳爻/阴爻，点击切换（见应用）',
+  sixiangScene: '【互动】两根线叠成四象，对照四季（见应用）',
+  trigramScene: '【互动】三根线叠成八卦，看它化成哪种自然景象（见应用）',
+  taipi: '【动画】泰与否：天地之气交与不交（见应用）',
+  coin3: '【互动】掷硬币三次得一个八卦（见应用）',
+  coin6: '【互动】掷硬币六次得一个六十四卦（见应用）',
+  lookup: '【表】上下卦查卦表（见应用）',
   trigramCards: '【互动】八卦翻卡（见应用）',
   trigramExplorer: '【互动】八卦资料总表（见应用）',
   xiantianMap: '【图】先天八卦方位图（见应用）',
@@ -20,7 +24,7 @@ const WIDGET_NOTE: Record<string, string> = {
 }
 
 function screenMd(s: Screen): string {
-  if (s.t === 'text') return `### ${s.title}\n\n${s.body.replace(/\n/g, '  \n')}\n`
+  if (s.t === 'text') return `### ${s.tag ? `【${s.tag}】` : ''}${s.title}\n\n${s.body.replace(/\n/g, '  \n')}\n`
   if (s.t === 'widget') return `### ${s.title}\n\n${s.body ? s.body + '\n\n' : ''}${WIDGET_NOTE[s.w]}\n`
   const h = HEXAGRAMS[s.n - 1]
   return `### ${s.title}\n\n**${h.name}**（${h.fullName}）：${h.gist}\n\n> ${h.guaci}\n\n白话：${h.gcBai}\n\n${h.yao.map((y, i) => `- ${y}　——${h.yaoBai[i]}`).join('\n')}\n`
@@ -29,7 +33,7 @@ function screenMd(s: Screen): string {
 export function lessonMd(l: Lesson) {
   return [
     `## 第 ${l.day} 天 · ${l.title}`,
-    `学习目标：${l.goal}（约 ${l.minutes} 分钟）\n`,
+    `*${l.subtitle}*\n\n学习目标：${l.goal}（约 ${l.minutes} 分钟）\n`,
     ...l.screens.map(screenMd),
     `### 练习`,
     ...l.quiz.map((q, i) => `${i + 1}. ${q.q}\n${q.opts.map((o, k) => `   ${'ABCDEF'[k]}. ${o}`).join('\n')}`),

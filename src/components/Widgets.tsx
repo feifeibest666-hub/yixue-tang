@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Hex } from './Hex'
 import { MeihuaResultView } from './MeihuaResultView'
+import { CoinCast, LookupTable, SixiangScene, TaiPi, Taiji, TrigramScene, YaoBrush } from './fx'
 import {
   HEXAGRAMS, TRIGRAMS, type Line, type Trigram, hexByLines, hexByTrigrams, trigramByLines, yaoTitle, YAO_POS,
 } from '../data/bagua'
@@ -10,10 +11,14 @@ import { castByNumber } from '../lib/meihua'
 export function Widget({ name }: { name: WidgetName }) {
   switch (name) {
     case 'yinyangSort': return <YinYangSort />
-    case 'yaoToggle': return <YaoToggle />
-    case 'stack2': return <Stacker max={2} />
-    case 'stack3': return <Stacker max={3} />
-    case 'stack6': return <Stacker max={6} />
+    case 'taiji': return <Taiji />
+    case 'yaoBrush': return <YaoBrush />
+    case 'sixiangScene': return <SixiangScene />
+    case 'trigramScene': return <TrigramScene />
+    case 'taipi': return <TaiPi />
+    case 'coin3': return <CoinCast count={3} />
+    case 'coin6': return <CoinCast count={6} />
+    case 'lookup': return <LookupTable />
     case 'trigramCards': return <TrigramCards />
     case 'trigramExplorer': return <TrigramExplorer />
     case 'xiantianMap': return <BaguaMap initial="xian" />
@@ -56,87 +61,6 @@ function YinYangSort() {
         </div>
       ))}
       <div className="w-foot">已答对 {right} / {YY_ITEMS.length}</div>
-    </div>
-  )
-}
-
-// ── 爻：点击切换 ──
-function YaoToggle() {
-  const [l, setL] = useState<Line>(1)
-  return (
-    <div className="w-yao">
-      <button className="yao-big" onClick={() => setL((1 - l) as Line)} aria-label="切换阴阳">
-        <Hex lines={[l]} size={220} color={l ? 'var(--cinnabar)' : 'var(--indigo)'} />
-      </button>
-      <div className="yao-name">{l ? '阳爻 ⚊' : '阴爻 ⚋'}</div>
-      <div className="yao-desc">
-        {l
-          ? '一整条实线 · 一笔画成 · 奇数“一” · 实、满、刚 · 像白天、像桥'
-          : '中间断开 · 两小段 · 偶数“二” · 虚、空、柔 · 像黑夜、像打开的门'}
-      </div>
-      <div className="hint">👆 点线条切换</div>
-    </div>
-  )
-}
-
-// ── 从下往上叠线 ──
-const SIXIANG: Record<string, string> = { '11': '太阳', '10': '少阴', '01': '少阳', '00': '太阴' }
-const LEVEL_NAME = ['', '两仪', '四象', '八卦', '', '', '六十四卦']
-const combos = (n: number): Line[][] =>
-  n === 0 ? [[]] : combos(n - 1).flatMap((c) => [[...c, 1 as Line], [...c, 0 as Line]])
-
-function nameOf(lines: Line[]) {
-  if (lines.length === 1) return lines[0] ? '阳' : '阴'
-  if (lines.length === 2) return SIXIANG[lines.join('')]
-  if (lines.length === 3) { const t = trigramByLines(lines); return `${t.name}（${t.nature}）` }
-  if (lines.length === 6) { const h = hexByLines(lines); return `${h.name}（${h.fullName}）` }
-  return ''
-}
-
-function Stacker({ max }: { max: 2 | 3 | 6 }) {
-  const [lines, setLines] = useState<Line[]>([])
-  const full = lines.length === max
-  const add = (l: Line) => !full && setLines([...lines, l])
-  const all = max <= 3 ? combos(max) : []
-  return (
-    <div className="w-stack">
-      <div className="stack-stage">
-        <div className="stack-lines">
-          {lines.length === 0 ? <div className="stack-empty">从这里（最下面）开始叠 ↓</div> : <Hex lines={lines} size={max === 6 ? 120 : 150} highlight={[lines.length]} />}
-        </div>
-        <div className="stack-info">
-          <div className="stack-count">{lines.length} 根线</div>
-          {lines.length > 0 && <div className="stack-name">{nameOf(lines)}</div>}
-          {lines.length > 0 && <div className="stack-kinds">这一层一共 <b>{2 ** lines.length}</b> 种{LEVEL_NAME[lines.length] && `（${LEVEL_NAME[lines.length]}）`}</div>}
-        </div>
-      </div>
-      <div className="stack-btns">
-        <button className="btn yang" disabled={full} onClick={() => add(1)}>＋ 阳 ⚊</button>
-        <button className="btn yin" disabled={full} onClick={() => add(0)}>＋ 阴 ⚋</button>
-        <button className="btn ghost" disabled={!lines.length} onClick={() => setLines(lines.slice(0, -1))}>撤销</button>
-        <button className="btn ghost" disabled={!lines.length} onClick={() => setLines([])}>清空</button>
-      </div>
-      <div className="ladder">
-        {Array.from({ length: max }, (_, i) => i + 1).map((k) => (
-          <div key={k} className={`rung ${lines.length >= k ? 'on' : ''}`}>
-            <span>{k} 根</span><b>{2 ** k}</b><small>{LEVEL_NAME[k]}</small>
-          </div>
-        ))}
-      </div>
-      {all.length > 0 && (
-        <div className={`all-grid n${max}`}>
-          {all.map((c, i) => {
-            const match = lines.length > 0 && lines.every((v, j) => c[j] === v)
-            return (
-              <div key={i} className={`all-cell ${match ? 'match' : ''}`}>
-                <Hex lines={c} size={40} />
-                <span>{max === 2 ? SIXIANG[c.join('')] : trigramByLines(c).name}</span>
-              </div>
-            )
-          })}
-        </div>
-      )}
-      {max === 6 && full && <a className="link" href={`#/atlas/${hexByLines(lines).n}`}>查看这一卦的卦辞 →</a>}
     </div>
   )
 }

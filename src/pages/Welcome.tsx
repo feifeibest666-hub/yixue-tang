@@ -1,0 +1,50 @@
+import { motion } from 'motion/react'
+import { SCENE } from '../data/scenes'
+import { finishOnboarding } from '../lib/store'
+import { LearningMap } from '../components/LearningMap'
+
+const PROMISES = [
+  { k: '一', t: '每天一课，十分钟', d: '按顺序解锁，漏了可以补' },
+  { k: '二', t: '先懂为什么，再记结论', d: '每个规则都讲来历，约定俗成的会明说' },
+  { k: '三', t: '从一条线学到梅花易数', d: '阴阳 → 八卦 → 六十四卦 → 起卦断卦' },
+]
+
+export function WelcomePage() {
+  const start = () => { finishOnboarding(); window.location.hash = '#/lesson/1' }
+  const skip = () => { finishOnboarding(); window.location.hash = '#/today' }
+  return (
+    <div className="welcome">
+      <section className="wl-hero">
+        <motion.img src={SCENE.welcome} alt="" initial={{ scale: 1.08, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.6, ease: 'easeOut' }} />
+        <div className="wl-title">
+          <motion.div className="wl-seal" initial={{ scale: 1.6, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: -6 }} transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 16 }}>易</motion.div>
+          <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.8 }}>易学堂</motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.8 }}>零基础，读懂《周易》与梅花易数</motion.p>
+        </div>
+      </section>
+
+      <section className="wl-body">
+        <motion.button className="btn primary xl" onClick={start} whileTap={{ scale: 0.97 }}
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
+          从这里开始 · 第 1 课
+        </motion.button>
+        <p className="wl-sub">第 1 课：《周易》是一本什么书？约 10 分钟</p>
+
+        <ul className="wl-promises">
+          {PROMISES.map((p, i) => (
+            <motion.li key={p.k} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 + i * 0.12 }}>
+              <span className="wl-k">{p.k}</span>
+              <div><b>{p.t}</b><span>{p.d}</span></div>
+            </motion.li>
+          ))}
+        </ul>
+
+        <h2 className="section-title">学习地图</h2>
+        <p className="muted center">七个阶段，六十一天。你会从第一站出发。</p>
+        <LearningMap completed={{}} current={1} />
+
+        <button className="link-btn center-block" onClick={skip}>我已经学过一些，直接进入</button>
+      </section>
+    </div>
+  )
+}

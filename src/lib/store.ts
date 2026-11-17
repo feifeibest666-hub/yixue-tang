@@ -24,6 +24,7 @@ export interface State {
   cards: Record<string, Card>
   wrong: Record<string, WrongQ>
   cases: SavedCase[]
+  onboarded?: boolean
 }
 
 const KEY = 'zhouyi-xuexi-v1'
@@ -128,4 +129,9 @@ export const resetAll = () => {
   localStorage.removeItem(KEY)
   state = load(); persist(); listeners.forEach((l) => l())
 }
+export const finishOnboarding = () => update((s) => {
+  if (!Object.keys(s.completed).length) s.startDate = todayStr()
+  s.onboarded = true
+})
+export const isOnboarded = (s: State) => Boolean(s.onboarded || Object.keys(s.completed).length)
 export const setStartDate = (d: string) => update((s) => { s.startDate = d })

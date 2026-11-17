@@ -1,4 +1,5 @@
 import type { Line } from '../data/bagua'
+import { motion } from 'motion/react'
 import { Fragment, type ReactNode } from 'react'
 
 interface Props {
@@ -9,9 +10,12 @@ interface Props {
   labels?: boolean
   color?: string
   onLineClick?: (i: number) => void
+  draw?: boolean
 }
 
-export function Hex({ lines, size = 64, moving, highlight = [], labels, color = 'var(--ink)', onLineClick }: Props) {
+const EASE = [0.25, 0.8, 0.3, 1] as const
+
+export function Hex({ lines, size = 64, moving, highlight = [], labels, color = 'var(--ink)', onLineClick, draw }: Props) {
   const n = lines.length
   const lh = size * 0.13
   const gap = size * 0.09
@@ -30,11 +34,11 @@ export function Hex({ lines, size = 64, moving, highlight = [], labels, color = 
           <g key={i} {...click}>
             {onLineClick && <rect x={0} y={y - gap / 2} width={w} height={lh + gap} fill="transparent" />}
             {l === 1 ? (
-              <rect x={0} y={y} width={w} height={lh} rx={lh * 0.18} fill={fill} />
+              <Bar x={0} y={y} w={w} h={lh} fill={fill} draw={draw} />
             ) : (
               <>
-                <rect x={0} y={y} width={w * 0.43} height={lh} rx={lh * 0.18} fill={fill} />
-                <rect x={w * 0.57} y={y} width={w * 0.43} height={lh} rx={lh * 0.18} fill={fill} />
+                <Bar x={0} y={y} w={w * 0.43} h={lh} fill={fill} draw={draw} />
+                <Bar x={w * 0.57} y={y} w={w * 0.43} h={lh} fill={fill} draw={draw} delay={0.22} />
               </>
             )}
             {mv && <circle cx={w + 8} cy={y + lh / 2} r={lh * 0.35} fill="var(--cinnabar)" />}
@@ -47,6 +51,15 @@ export function Hex({ lines, size = 64, moving, highlight = [], labels, color = 
         )
       })}
     </svg>
+  )
+}
+
+function Bar({ x, y, w, h, fill, draw, delay = 0 }: { x: number; y: number; w: number; h: number; fill: string; draw?: boolean; delay?: number }) {
+  if (!draw) return <rect x={x} y={y} width={w} height={h} rx={h * 0.18} fill={fill} />
+  return (
+    <motion.rect x={x} y={y} height={h} rx={h * 0.18} fill={fill}
+      initial={{ width: 0, opacity: 0.4 }} animate={{ width: w, opacity: 1 }}
+      transition={{ duration: 0.5, delay, ease: EASE }} />
   )
 }
 
