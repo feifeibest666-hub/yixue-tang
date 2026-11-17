@@ -17,9 +17,9 @@ export function WelcomePage() {
       <section className="wl-hero">
         <motion.img src={SCENE.welcome} alt="" initial={{ scale: 1.08, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.6, ease: 'easeOut' }} />
         <div className="wl-title">
-          <motion.div className="wl-seal" initial={{ scale: 1.6, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: -6 }} transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 16 }}>易</motion.div>
           <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.8 }}>易学堂</motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.8 }}>零基础，读懂《周易》与梅花易数</motion.p>
+          <motion.div className="wl-seal" initial={{ scale: 1.6, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: -6 }} transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 16 }}>易</motion.div>
         </div>
       </section>
 

@@ -14,7 +14,8 @@ export function AtlasPage() {
     (!up || h.upper.name === up) && (!lo || h.lower.name === lo))
   return (
     <div className="page">
-      <header className="page-head"><h1>六十四卦图鉴</h1></header>
+      <header className="page-head"><div><div className="eyebrow">卦典</div><h1>六十四卦</h1></div></header>
+      <p className="muted">通行本原文 · 逐卦白话。点开任意一卦读卦辞、爻辞与大象。</p>
       <div className="filters card">
         <input placeholder="搜索卦名 / 序号，如：泰、11" value={q} onChange={(e) => setQ(e.target.value.trim())} />
         <div className="row">

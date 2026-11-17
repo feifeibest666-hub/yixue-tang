@@ -14,8 +14,12 @@ const SIXIANG: Record<string, { name: string; why: string }> = {
 function LineButtons({ disabled, onAdd }: { disabled: boolean; onAdd: (l: Line) => void }) {
   return (
     <div className="stack-btns">
-      <button className="btn yang" disabled={disabled} onClick={() => onAdd(1)}>阳 ⚊</button>
-      <button className="btn yin" disabled={disabled} onClick={() => onAdd(0)}>阴 ⚋</button>
+      <button className="btn yang" disabled={disabled} onClick={() => onAdd(1)}>
+        <svg viewBox="0 0 40 8" className="line-ico"><rect width="40" height="8" rx="2" /></svg>阳
+      </button>
+      <button className="btn yin" disabled={disabled} onClick={() => onAdd(0)}>
+        <svg viewBox="0 0 40 8" className="line-ico"><rect width="17" height="8" rx="2" /><rect x="23" width="17" height="8" rx="2" /></svg>阴
+      </button>
     </div>
   )
 }
@@ -41,13 +45,13 @@ export function YaoBrush() {
       <button className="yao-stage" onClick={toggle} aria-label="切换阴阳">
         <svg viewBox="0 0 240 46" className="yao-svg">
           {yang ? (
-            <motion.rect key="yang" x="6" y="14" height="18" rx="3" fill="var(--cinnabar)"
+            <motion.rect key="yang" x="6" y="13" height="20" rx="6" fill="var(--ink)"
               initial={reduced ? { width: 228 } : { width: 0 }} animate={{ width: 228 }}
               transition={{ duration: 0.55, ease: [0.22, 0.7, 0.3, 1] }} />
           ) : (
             <>
               {[6, 132].map((x, i) => (
-                <motion.rect key={`yin${i}`} x={x} y="14" height="18" rx="3" fill="var(--indigo)"
+                <motion.rect key={`yin${i}`} x={x} y="13" height="20" rx="6" fill="var(--ink)"
                   initial={reduced ? { width: 102 } : { width: 0 }} animate={{ width: 102 }}
                   transition={{ duration: 0.45, delay: i * 0.12, ease: [0.22, 0.7, 0.3, 1] }} />
               ))}
@@ -63,7 +67,7 @@ export function YaoBrush() {
       </button>
       <motion.div key={yang ? 'a' : 'b'} className="yao-caption" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
         <b>{yang ? '阳爻' : '阴爻'}</b>
-        <span>{yang ? '墨聚成一笔：实、满、连成一片，代表“是 / 动 / 刚”' : '中间散开留空：虚、能容纳，代表“否 / 静 / 柔”'}</span>
+        <span>{yang ? '墨聚成一笔：实而满，表示“是 · 动 · 刚”' : '中间散开留白：虚能容，表示“否 · 静 · 柔”'}</span>
       </motion.div>
       <div className="hint">点一下，看这一笔怎么变</div>
     </div>
@@ -235,7 +239,7 @@ function QiColumn({ kind }: { kind: 'tai' | 'pi' }) {
 export function TaiPi() {
   return (
     <div className="fx-taipi">
-      <svg width="0" height="0" aria-hidden>
+      <svg width="0" height="0" aria-hidden style={{ position: 'absolute' }}>
         <defs>
           <radialGradient id="qiGlow"><stop offset="0" stopColor="var(--gold)" stopOpacity="0.55" /><stop offset="1" stopColor="var(--gold)" stopOpacity="0" /></radialGradient>
         </defs>
@@ -262,10 +266,13 @@ function CoinFace({ side }: { side: 'yang' | 'yin' }) {
       <rect x="-11" y="-11" width="22" height="22" className="cf-hole" />
       {side === 'yang' ? (
         <g className="cf-txt">
-          <text y="-21">周</text><text y="33">易</text><text x="-27" y="6">阳</text><text x="27" y="6">一</text>
+          <text y="-20">周</text><text y="34">易</text><text x="27" y="7">通</text><text x="-27" y="7">宝</text>
         </g>
       ) : (
-        <g className="cf-txt"><text y="-21">阴</text><text y="33">--</text></g>
+        <g className="cf-mark">
+          <path d="M-6 -30 a12 12 0 1 0 12 0 a9 9 0 1 1 -12 0z" />
+          <circle cy="27" r="3.2" />
+        </g>
       )}
     </svg>
   )
@@ -276,14 +283,14 @@ export function CoinCast({ count }: { count: 3 | 6 }) {
   const [lines, setLines] = useState<Line[]>([])
   const [spinning, setSpinning] = useState(false)
   const [turns, setTurns] = useState(0)
+  const [face, setFace] = useState<Line>(1)
   const done = lines.length === count
   const toss = () => {
     if (spinning || done) return
     const result: Line = Math.random() < 0.5 ? 1 : 0
-    if (reduced) { setTurns(result ? 0 : 1); setLines([...lines, result]); return }
-    const cur = turns % 2
-    const target = result ? 0 : 1
-    setTurns(turns + 6 + ((target - cur + 2) % 2))
+    setFace(result)
+    if (reduced) { setLines([...lines, result]); return }
+    setTurns(turns + 4)
     setSpinning(true)
     setTimeout(() => { setSpinning(false); setLines([...lines, result]) }, 1050)
   }
@@ -293,15 +300,20 @@ export function CoinCast({ count }: { count: 3 | 6 }) {
     <div className="fx-coin">
       <div className="coin-stage">
         <motion.button className="coin" onClick={toss} disabled={done} aria-label="扔硬币"
-          animate={{ rotateY: turns * 180, y: spinning ? [0, -70, 0] : 0 }}
-          transition={{ rotateY: { duration: reduced ? 0 : 1, ease: [0.3, 0.1, 0.25, 1] }, y: { duration: 1, ease: 'easeOut', times: [0, 0.45, 1] } }}>
-          <span className="coin-side front"><CoinFace side="yang" /></span>
-          <span className="coin-side back"><CoinFace side="yin" /></span>
+          style={{ transformPerspective: 600 }}
+          animate={{ rotateX: turns * 360, y: spinning ? [0, -78, 0] : 0 }}
+          transition={{ rotateX: { duration: reduced ? 0 : 1, ease: [0.3, 0.1, 0.25, 1] }, y: { duration: 1, ease: [0.3, 0, 0.4, 1], times: [0, 0.45, 1] } }}>
+          <CoinFace side={face ? 'yang' : 'yin'} />
         </motion.button>
+        {lines.length > 0 && !spinning && (
+          <motion.div key={lines.length} className="coin-cap" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}>
+            {face ? '正面 · 阳' : '反面 · 阴'}
+          </motion.div>
+        )}
         <motion.div className="coin-shadow" animate={{ scale: spinning ? [1, 0.55, 1] : 1, opacity: spinning ? [0.35, 0.15, 0.35] : 0.35 }} transition={{ duration: 1 }} />
       </div>
       <div className="coin-lines">
-        {lines.length === 0 ? <div className="stack-empty">点铜钱：“周易”面朝上为阳，“阴”面朝上为阴</div> : <Hex lines={lines} size={96} highlight={[lines.length]} draw />}
+        {lines.length === 0 ? <div className="stack-empty">点铜钱掷一次：有字的正面为阳，光背的反面为阴</div> : <Hex lines={lines} size={96} highlight={done ? [] : [lines.length]} draw />}
         <div className="coin-count">{done ? `已掷 ${count} 次` : `第 ${lines.length + 1} 掷 / 共 ${count} 掷`}</div>
       </div>
       {tri && (
@@ -317,7 +329,7 @@ export function CoinCast({ count }: { count: 3 | 6 }) {
         </motion.a>
       )}
       <div className="row-end">
-        <button className="btn ghost sm" disabled={!lines.length || spinning} onClick={() => { setLines([]); setTurns(0) }}>重来</button>
+        <button className="btn ghost sm" disabled={!lines.length || spinning} onClick={() => { setLines([]); setFace(1) }}>重来</button>
       </div>
     </div>
   )

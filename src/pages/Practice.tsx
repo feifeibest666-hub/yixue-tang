@@ -38,7 +38,8 @@ export function PracticePage({ mode }: { mode?: string }) {
 
   return (
     <div className="page">
-      <header className="page-head"><h1>记忆练习</h1></header>
+      <header className="page-head"><div><div className="eyebrow">温习</div><h1>记忆练习</h1></div></header>
+      <p className="muted">卡片按遗忘规律安排：记住的隔几天再来，忘了的明天再见。</p>
       <section className="card hl">
         <h3>今日复习</h3>
         <p>{due.length > 0 ? `有 ${due.length} 张卡片到期，复习一下吧。` : '没有到期卡片。可以学点新卡片。'}</p>

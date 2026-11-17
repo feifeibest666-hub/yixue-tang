@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { Hex } from './Hex'
 import type { MeihuaResult } from '../lib/meihua'
 import { RELATION_MEANING, yaoTitle } from '../data/bagua'
@@ -13,14 +14,15 @@ export function MeihuaResultView({ r, compact }: { r: MeihuaResult; compact?: bo
           { k: '本卦', h: r.ben, sub: '开始 · 现状', moving: r.moving },
           { k: '互卦', h: r.hu, sub: '过程' },
           { k: '变卦', h: r.bian, sub: '结果' },
-        ].map((x) => (
-          <a key={x.k} className="mh-card" href={`#/atlas/${x.h.n}`}>
+        ].map((x, i) => (
+          <motion.a key={`${x.k}-${x.h.n}-${r.moving}-${r.inputLabel}`} className="mh-card" href={`#/atlas/${x.h.n}`}
+            initial={compact ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.35, duration: 0.5 }}>
             <div className="mh-k">{x.k}</div>
-            <Hex lines={x.h.lines} size={compact ? 46 : 58} moving={x.moving} />
+            <DelayedHex lines={x.h.lines} size={compact ? 46 : 58} moving={x.moving} delay={compact ? -1 : i * 0.35} />
             <div className="mh-name">{x.h.name}</div>
             <div className="mh-full">{x.h.fullName}</div>
             <div className="mh-sub">{x.sub}</div>
-          </a>
+          </motion.a>
         ))}
       </div>
 
@@ -54,5 +56,14 @@ export function MeihuaResultView({ r, compact }: { r: MeihuaResult; compact?: bo
         </div>
       )}
     </div>
+  )
+}
+
+function DelayedHex({ delay, ...p }: Parameters<typeof Hex>[0] & { delay: number }) {
+  if (delay < 0) return <Hex {...p} />
+  return (
+    <motion.div initial={{ clipPath: 'inset(100% 0 0 0)' }} animate={{ clipPath: 'inset(0% 0 0 0)' }} transition={{ delay: delay + 0.1, duration: 0.7, ease: [0.3, 0.6, 0.2, 1] }}>
+      <Hex {...p} />
+    </motion.div>
   )
 }

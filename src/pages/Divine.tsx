@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { SCENE } from '../data/scenes'
 import { castByNumber, castByTime, type MeihuaResult } from '../lib/meihua'
 import { MeihuaResultView } from '../components/MeihuaResultView'
 import { update, useStore, type SavedCase } from '../lib/store'
@@ -23,17 +24,19 @@ export function DivinePage() {
   const [judge, setJudge] = useState('')
   const [saved, setSaved] = useState<string | null>(null)
   const [err, setErr] = useState('')
+  const resRef = useRef<HTMLElement>(null)
+  const reveal = () => setTimeout(() => resRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
 
   const cast = () => {
     setErr(''); setSaved(null)
     if (method === 'time') {
       const d = new Date(time)
       if (isNaN(d.getTime())) return setErr('请选择正确的时间')
-      setRes(castByTime({ date: d, lateZiNextDay: lateZi }))
+      setRes(castByTime({ date: d, lateZiNextDay: lateZi })); reveal()
     } else {
       const na = parseInt(a, 10), nb = parseInt(b, 10)
       if (!(na > 0 && nb > 0)) return setErr('请输入两个正整数')
-      setRes(castByNumber(na, nb, addHour))
+      setRes(castByNumber(na, nb, addHour)); reveal()
     }
   }
 
@@ -53,9 +56,13 @@ export function DivinePage() {
   return (
     <div className="page">
       <header className="page-head">
-        <h1>梅花易数起卦</h1>
+        <div><div className="eyebrow">起卦</div><h1>梅花易数</h1></div>
         <a className="btn ghost sm" href="#/cases">我的占例 {s.cases.length ? `(${s.cases.length})` : ''}</a>
       </header>
+      <div className="divine-banner">
+        <img src={SCENE.meihua} alt="" />
+        <p>以时间或数字取象，得本、互、变三卦，<br />再看体用生克。每一步都写出算式。</p>
+      </div>
       <section className="card">
         <div className="seg">
           <button className={method === 'time' ? 'on' : ''} onClick={() => setMethod('time')}>时间起卦</button>
@@ -88,7 +95,7 @@ export function DivinePage() {
       </section>
 
       {res && (
-        <section className="card">
+        <section className="card" ref={resRef}>
           <h3>卦象 · {res.inputLabel}</h3>
           <MeihuaResultView r={res} />
           <div className="save-box">

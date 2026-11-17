@@ -52,8 +52,8 @@ export default function App() {
       <div className="app">
         <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
           <filter id="ink-rough" x="-5%" y="-20%" width="110%" height="140%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.035 0.6" numOctaves="2" seed="4" result="n" />
-            <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.018 0.11" numOctaves="3" seed="4" result="n" />
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </svg>
         <AnimatePresence mode="wait" initial={false}>
