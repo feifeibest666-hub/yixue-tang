@@ -25,6 +25,8 @@ export interface State {
   wrong: Record<string, WrongQ>
   cases: SavedCase[]
   onboarded?: boolean
+  /** 自由学读过的课（课号 -> 日期），不计入每日进度和打卡 */
+  freeRead?: Record<number, string>
 }
 
 const KEY = 'zhouyi-xuexi-v1'
@@ -95,6 +97,14 @@ export function completeLesson(day: number) {
   })
 }
 
+export function markFreeRead(day: number) {
+  update((s) => {
+    s.freeRead = s.freeRead ?? {}
+    if (!s.freeRead[day]) s.freeRead[day] = todayStr()
+  })
+}
+export const isRead = (s: State, day: number) => Boolean(s.completed[day] || s.freeRead?.[day])
+
 export function streak(s: State, today = todayStr()) {
   const set = new Set(s.checkins)
   let d = set.has(today) ? today : addDays(today, -1)
@@ -143,5 +153,5 @@ export const finishOnboarding = () => update((s) => {
   if (!Object.keys(s.completed).length) s.startDate = todayStr()
   s.onboarded = true
 })
-export const isOnboarded = (s: State) => Boolean(s.onboarded || Object.keys(s.completed).length)
+export const isOnboarded = (s: State) => Boolean(s.onboarded || Object.keys(s.completed).length || Object.keys(s.freeRead ?? {}).length)
 export const setStartDate = (d: string) => update((s) => { s.startDate = d })

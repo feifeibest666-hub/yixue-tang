@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { SCENE } from '../data/scenes'
 import { finishOnboarding } from '../lib/store'
 import { LearningMap } from '../components/LearningMap'
+import { Hex } from '../components/Hex'
 
 const PROMISES = [
   { k: '一', t: '每天一课，十分钟', d: '按顺序解锁，漏了可以补' },
@@ -12,6 +13,7 @@ const PROMISES = [
 export function WelcomePage() {
   const start = () => { finishOnboarding(); window.location.hash = '#/lesson/1' }
   const skip = () => { finishOnboarding(); window.location.hash = '#/today' }
+  const free = () => { finishOnboarding(); window.location.hash = '#/gua' }
   return (
     <div className="welcome">
       <section className="wl-hero">
@@ -29,6 +31,12 @@ export function WelcomePage() {
           从这里开始 · 第 1 课
         </motion.button>
         <p className="wl-sub">第 1 课：《周易》是一本什么书？约 10 分钟</p>
+        <motion.button className="wl-free" onClick={free} whileTap={{ scale: 0.98 }}
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+          <span className="wl-free-hex"><Hex lines={[1, 1, 1, 1, 1, 1]} size={26} /><Hex lines={[0, 0, 0, 0, 0, 0]} size={26} /></span>
+          <span className="wl-free-t"><b>直接学 64 卦</b><span>不按天数、不用解锁，点哪卦学哪卦；每卦开头补上需要的基础</span></span>
+          <span className="wl-free-arrow">›</span>
+        </motion.button>
 
         <ul className="wl-promises">
           {PROMISES.map((p, i) => (

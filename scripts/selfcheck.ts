@@ -1,6 +1,6 @@
 import { HEXAGRAMS, TRIGRAMS } from '../src/data/bagua'
 import { BAIHUA } from '../src/data/baihua'
-import { ALL_LESSONS, ELECTIVES, LESSONS } from '../src/data/curriculum'
+import { ALL_LESSONS, ELECTIVES, LESSONS, guaLessonDay, guaOfDay, lessonByDay } from '../src/data/curriculum'
 import { GUA_NOTES } from '../src/data/guaNotes'
 import { ALL_CARDS } from '../src/data/cards'
 import { castByNumber, castByTime } from '../src/lib/meihua'
@@ -51,6 +51,11 @@ for (let n = 1; n <= 64; n++) {
   ok(l.title.includes(`第 ${n} 卦`) && l.screens.some((x) => x.t === 'hex' && x.n === n), `第 ${day} 天应讲第 ${n} 卦：${l.title}`)
 }
 for (let n = 9; n <= 64; n++) ok(Boolean(GUA_NOTES[n]?.why), '缺少卦注 ' + n)
+for (let n = 1; n <= 64; n++) {
+  const d = guaLessonDay(n), l = lessonByDay(d)
+  ok(guaOfDay(d) === n && Boolean(l?.title.includes(`第 ${n} 卦`)), `自由学：第 ${n} 卦应映射到讲它的那一课（第 ${d} 天）`)
+}
+ok(LESSONS.filter((l) => guaOfDay(l.day) !== null).length === 64, '恰好 64 节读卦课')
 ok(ELECTIVES.length === 23, '选修课数 ' + ELECTIVES.length)
 ELECTIVES.forEach((l, i) => ok(l.day === 101 + i && Boolean(l.elective), '选修编号 ' + l.day))
 ok(new Set(ALL_LESSONS.map((l) => l.day)).size === ALL_LESSONS.length, '课号唯一')

@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ALL_LESSONS, TOTAL_DAYS, ELECTIVE_UNITS, UNITS, lessonByDay, lessonLabel, type Quiz, type Screen, type Unit } from '../data/curriculum'
+import { ALL_LESSONS, TOTAL_DAYS, ELECTIVE_UNITS, UNITS, guaOfDay, lessonByDay, lessonLabel, type Quiz, type Screen, type Unit } from '../data/curriculum'
 import { SCENE } from '../data/scenes'
-import { completeLesson, isUnlocked, recordQuiz, scheduleInfo, useStore } from '../lib/store'
+import { completeLesson, isRead, isUnlocked, markFreeRead, recordQuiz, scheduleInfo, useStore } from '../lib/store'
+import { GuaBasics } from '../components/GuaBasics'
 import { Rich, Hex } from '../components/Hex'
 import { Widget } from '../components/Widgets'
 import { HEXAGRAMS } from '../data/bagua'
@@ -16,6 +17,7 @@ export function CoursePage() {
         <a className="btn ghost sm" href="#/handout">讲义 / 导出</a>
       </header>
       <p className="muted">主线 {TOTAL_DAYS} 天，与每日 PDF 讲义同课同序：先打基础，第 22 天起每天读一卦，读完六十四卦。</p>
+      <a className="row-link free-link" href="#/gua"><span>想直接学某一卦？<b>六十四卦图谱 · 自由学</b></span><span className="arrow">去看</span></a>
       {UNITS.map((u) => <UnitBlock key={u.id} u={u} />)}
       <div className="elective-head">
         <h2 className="section-title">选修</h2>
@@ -59,13 +61,16 @@ function UnitBlock({ u }: { u: Unit }) {
   )
 }
 
-export function LessonPage({ day }: { day: number }) {
+/** free：自由学，不受每天解锁限制，读完只记“已读”，不打卡 */
+export function LessonPage({ day, free = false }: { day: number; free?: boolean }) {
   const s = useStore()
   const lesson = lessonByDay(day)
   const info = scheduleInfo(s)
   const [step, setStep] = useState(-1)
-  if (!lesson) return <div className="page"><p>没有这一课。</p><a href="#/course">返回学程</a></div>
-  if (!isUnlocked(s, day))
+  const gua = guaOfDay(day)
+  const exit = free ? '#/gua' : '#/today'
+  if (!lesson || (free && day > TOTAL_DAYS)) return <div className="page"><p>没有这一课。</p><a href="#/course">返回学程</a></div>
+  if (!free && !isUnlocked(s, day))
     return (
       <div className="page pad">
         <div className="card center">
@@ -85,7 +90,7 @@ export function LessonPage({ day }: { day: number }) {
       </div>
     )
 
-  if (step === -1) return <LessonCover lesson={lesson} onStart={() => setStep(0)} />
+  if (step === -1) return <LessonCover lesson={lesson} free={free} gua={gua} exit={exit} onStart={() => setStep(0)} />
 
   const total = lesson.screens.length + 1
   const isQuiz = step >= lesson.screens.length
@@ -95,10 +100,10 @@ export function LessonPage({ day }: { day: number }) {
       <header className="lesson-head">
         <button onClick={() => setStep(step - 1)} className="back" aria-label="返回">‹</button>
         <div className="lh-mid">
-          <div className="lh-day">{lessonLabel(lesson)}</div>
+          <div className="lh-day">{free ? (gua ? `自由学 · 第 ${gua} 卦` : `自由学 · ${lessonLabel(lesson)}`) : lessonLabel(lesson)}</div>
           <div className="lh-title">{lesson.title}</div>
         </div>
-        <a href="#/today" className="back close" aria-label="关闭">×</a>
+        <a href={exit} className="back close" aria-label="关闭">×</a>
       </header>
       <div className="dots">
         {Array.from({ length: total }, (_, i) => <span key={i} className={i === step ? 'on' : i < step ? 'past' : ''} />)}
@@ -107,6 +112,7 @@ export function LessonPage({ day }: { day: number }) {
       <AnimatePresence mode="wait">
         {!isQuiz ? (
           <motion.div key={step} className="screen" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.28 }}>
+            {step === 0 && gua && <GuaBasics n={gua} open={free} freeLinks={free} />}
             <ScreenView sc={sc} />
             <div className="nav-btns">
               <button className="btn ghost" onClick={() => setStep(step - 1)}>上一屏</button>
@@ -115,7 +121,9 @@ export function LessonPage({ day }: { day: number }) {
           </motion.div>
         ) : (
           <motion.div key="quiz" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }}>
-            <QuizRun day={lesson.day} label={lesson.elective ?? `第${lesson.day}天`} quiz={lesson.quiz} done={Boolean(s.completed[lesson.day])} onBack={() => setStep(lesson.screens.length - 1)} />
+            {free
+              ? <QuizRun day={lesson.day} label={gua ? `第${gua}卦` : `第${lesson.day}天`} quiz={lesson.quiz} done={isRead(s, lesson.day)} free onBack={() => setStep(lesson.screens.length - 1)} />
+              : <QuizRun day={lesson.day} label={lesson.elective ?? `第${lesson.day}天`} quiz={lesson.quiz} done={Boolean(s.completed[lesson.day])} onBack={() => setStep(lesson.screens.length - 1)} />}
           </motion.div>
         )}
       </AnimatePresence>
@@ -123,20 +131,22 @@ export function LessonPage({ day }: { day: number }) {
   )
 }
 
-function LessonCover({ lesson, onStart }: { lesson: NonNullable<ReturnType<typeof lessonByDay>>; onStart: () => void }) {
+function LessonCover({ lesson, free, gua, exit, onStart }: { lesson: NonNullable<ReturnType<typeof lessonByDay>>; free: boolean; gua: number | null; exit: string; onStart: () => void }) {
   const unit = [...UNITS, ...ELECTIVE_UNITS].find((u) => u.id === lesson.unit)
   return (
     <div className="cover">
       <motion.img className="cover-art" src={SCENE[lesson.scene]} alt="" initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 1.4, ease: 'easeOut' }} />
-      <a href="#/today" className="back close floating" aria-label="关闭">×</a>
+      <a href={exit} className="back close floating" aria-label="关闭">×</a>
       <div className="cover-body">
         <motion.div className="cover-day" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <span className="cd-num">{lesson.elective ? lesson.elective.split(' ')[1] : lesson.day}</span><span>{lessonLabel(lesson)} · {unit?.name}</span>
+          {free
+            ? <><span className="cd-num">{gua ?? lesson.day}</span><span>自由学 · {gua ? `第 ${gua} 卦 · 不按天数` : `${lessonLabel(lesson)}的内容`}</span></>
+            : <><span className="cd-num">{lesson.elective ? lesson.elective.split(' ')[1] : lesson.day}</span><span>{lessonLabel(lesson)} · {unit?.name}</span></>}
         </motion.div>
         <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>{lesson.title}</motion.h1>
         <motion.p className="cover-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>{lesson.subtitle}</motion.p>
         <motion.div className="cover-goal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-          <div><span>今日目标</span>{lesson.goal}</div>
+          <div><span>{free ? '本课目标' : '今日目标'}</span>{lesson.goal}</div>
           <div><span>用时</span>约 {lesson.minutes} 分钟 · {lesson.screens.length} 屏讲解 · {lesson.quiz.length} 道练习</div>
         </motion.div>
         <motion.button className="btn primary xl" onClick={onStart} whileTap={{ scale: 0.97 }} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
@@ -187,7 +197,7 @@ function HexReading({ n }: { n: number }) {
   )
 }
 
-function QuizRun({ day, label, quiz, done, onBack }: { day: number; label: string; quiz: Quiz[]; done: boolean; onBack: () => void }) {
+function QuizRun({ day, label, quiz, done, free, onBack }: { day: number; label: string; quiz: Quiz[]; done: boolean; free?: boolean; onBack: () => void }) {
   const [i, setI] = useState(0)
   const [chosen, setChosen] = useState<number | null>(null)
   const [score, setScore] = useState(0)
@@ -197,10 +207,12 @@ function QuizRun({ day, label, quiz, done, onBack }: { day: number; label: strin
   const order = useMemo(() => (q ? seededShuffle(q.opts.map((_, k) => k), `${day}-${i}`) : []), [q, day, i])
 
   if (finished) {
+    const back = free ? '#/gua' : day > 100 ? '#/course' : '#/today'
     const finish = () => {
       setStamped(true)
-      completeLesson(day)
-      setTimeout(() => { window.location.hash = day > 100 ? '#/course' : '#/today' }, 1500)
+      if (free) markFreeRead(day)
+      else completeLesson(day)
+      setTimeout(() => { window.location.hash = back }, 1500)
     }
     return (
       <div className="screen center result">
@@ -211,13 +223,14 @@ function QuizRun({ day, label, quiz, done, onBack }: { day: number; label: strin
             {(stamped || done) && (
               <motion.div className="big-stamp" initial={{ scale: 2.6, opacity: 0, rotate: -24 }} animate={{ scale: 1, opacity: 1, rotate: -8 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 18 }}>
-                <span>{label}</span><b>已学</b>
+                <span>{label}</span><b>{free ? '已读' : '已学'}</b>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-        {!done && !stamped && <button className="btn primary block xl" onClick={finish}>盖章打卡</button>}
-        {done && <a className="btn primary block" href={day > 100 ? '#/course' : '#/today'}>{day > 100 ? '返回学程' : '返回今日'}</a>}
+        {!done && !stamped && <button className="btn primary block xl" onClick={finish}>{free ? '盖章 · 标为已读' : '盖章打卡'}</button>}
+        {free && !done && !stamped && <p className="muted center">自由学只记“已读”，不算每日打卡。</p>}
+        {done && <a className="btn primary block" href={back}>{free ? '回到六十四卦图谱' : day > 100 ? '返回学程' : '返回今日'}</a>}
         <button className="btn ghost block" onClick={() => { setI(0); setScore(0); setChosen(null); setFinished(false) }}>再做一遍</button>
       </div>
     )

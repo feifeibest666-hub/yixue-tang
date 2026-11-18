@@ -690,3 +690,9 @@ export const ELECTIVES: Lesson[] = electives
 export const ALL_LESSONS: Lesson[] = [...LESSONS, ...ELECTIVES]
 export const lessonByDay = (d: number) => ALL_LESSONS.find((l) => l.day === d)
 export const lessonLabel = (l: Lesson) => l.elective ?? `第 ${l.day} 天`
+
+/** 第 n 卦对应的主线课：乾–比在第 22–29 天，其余为卦序 + 22 */
+export const guaLessonDay = (n: number) => (n <= 8 ? n + 21 : n + 22)
+/** 主线课讲的是第几卦；不是“读一卦”的课返回 null */
+export const guaOfDay = (day: number) =>
+  day >= 22 && day <= 29 ? day - 21 : day >= 31 && day <= TOTAL_DAYS ? day - 22 : null

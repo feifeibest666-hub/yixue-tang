@@ -16,6 +16,10 @@ export function AtlasPage() {
     <div className="page">
       <header className="page-head"><div><div className="eyebrow">卦典</div><h1>六十四卦</h1></div></header>
       <p className="muted">通行本原文 · 逐卦白话。点开任意一卦读卦辞、爻辞与大象。</p>
+      <a className="free-entry slim" href="#/gua">
+        <span className="fe-t"><b>想从头学懂某一卦？</b><span>六十四卦图谱 · 自由学：每卦一整课，带基础回顾</span></span>
+        <span className="fe-arrow">›</span>
+      </a>
       <div className="filters card">
         <input placeholder="搜索卦名 / 序号，如：泰、11" value={q} onChange={(e) => setQ(e.target.value.trim())} />
         <div className="row">
@@ -69,6 +73,8 @@ export function GuaDetail({ n }: { n: number }) {
           </div>
         </div>
       </section>
+
+      <a className="btn primary block" href={`#/gua/${h.n}`}>学这一卦 · 完整一课（自由学）</a>
 
       <section className="card">
         <h3>卦辞</h3>

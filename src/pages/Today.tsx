@@ -2,8 +2,11 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { TOTAL_DAYS, UNITS, lessonByDay } from '../data/curriculum'
 import { SCENE } from '../data/scenes'
-import { addDays, dueCards, resetAll, scheduleInfo, setStartDate, streak, todayStr, useStore, wrongCards } from '../lib/store'
+import { addDays, dueCards, isRead, resetAll, scheduleInfo, setStartDate, streak, todayStr, useStore, wrongCards } from '../lib/store'
 import { LearningMap } from '../components/LearningMap'
+import { Hex } from '../components/Hex'
+import { HEXAGRAMS } from '../data/bagua'
+import { guaLessonDay } from '../data/curriculum'
 
 const WEEK = ['日', '一', '二', '三', '四', '五', '六']
 
@@ -51,6 +54,15 @@ export function TodayPage() {
         </motion.a>
       )}
       {!show && <div className="card center"><div className="tc-stamp static">圆满</div><h2>{TOTAL_DAYS} 天主线全部学完</h2></div>}
+
+      <a className="free-entry" href="#/gua">
+        <span className="fe-hex"><Hex lines={[1, 1, 1, 1, 1, 1]} size={30} /><Hex lines={[0, 0, 0, 0, 0, 0]} size={30} /></span>
+        <span className="fe-t">
+          <b>直接学 64 卦</b>
+          <span>不按天数，点哪卦学哪卦 · 已读 {HEXAGRAMS.filter((h) => isRead(s, guaLessonDay(h.n))).length}/64</span>
+        </span>
+        <span className="fe-arrow">›</span>
+      </a>
 
       <div className="stat-row">
         <div><b>{info.doneCount}</b><span>已学</span></div>
