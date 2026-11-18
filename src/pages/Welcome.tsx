@@ -5,7 +5,7 @@ import { LearningMap } from '../components/LearningMap'
 import { Hex } from '../components/Hex'
 
 const PROMISES = [
-  { k: '一', t: '每天一课，十分钟', d: '按顺序解锁，漏了可以补' },
+  { k: '一', t: '每天一课，十分钟', d: '有建议顺序，但每一课都随时能点开' },
   { k: '二', t: '先懂为什么，再记结论', d: '每个规则都讲来历，约定俗成的会明说' },
   { k: '三', t: '从一条线读完六十四卦', d: '阴阳 → 八卦 → 每天一卦；原理与梅花易数在选修里' },
 ]
@@ -34,7 +34,7 @@ export function WelcomePage() {
         <motion.button className="wl-free" onClick={free} whileTap={{ scale: 0.98 }}
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
           <span className="wl-free-hex"><Hex lines={[1, 1, 1, 1, 1, 1]} size={26} /><Hex lines={[0, 0, 0, 0, 0, 0]} size={26} /></span>
-          <span className="wl-free-t"><b>直接学 64 卦</b><span>不按天数、不用解锁，点哪卦学哪卦；每卦开头补上需要的基础</span></span>
+          <span className="wl-free-t"><b>直接学 64 卦</b><span>不按天数，点哪卦学哪卦；每卦开头补上需要的基础</span></span>
           <span className="wl-free-arrow">›</span>
         </motion.button>
 

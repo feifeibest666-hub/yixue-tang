@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import { TodayPage } from './pages/Today'
-import { CoursePage, LessonPage } from './pages/Course'
+import { CoursePage, LessonPage, StagePage } from './pages/Course'
 import { AtlasPage, GuaDetail } from './pages/Atlas'
 import { PracticePage } from './pages/Practice'
 import { DivinePage, CasesPage, CaseDetail } from './pages/Divine'
@@ -39,8 +39,8 @@ export default function App() {
   else switch (parts[0]) {
     case 'course': page = <CoursePage />; break
     case 'lesson': page = <LessonPage day={Number(parts[1])} />; break
+    case 'stage': page = <StagePage id={parts[1]} />; break
     case 'gua': page = parts[1] ? <LessonPage day={guaLessonDay(Number(parts[1]))} free /> : <GuaMapPage />; break
-    case 'free': page = <LessonPage day={Number(parts[1])} free />; break
     case 'atlas': page = parts[1] ? <GuaDetail n={Number(parts[1])} /> : <AtlasPage />; break
     case 'practice': page = <PracticePage mode={parts[1]} />; break
     case 'divine': page = <DivinePage />; break
@@ -49,8 +49,8 @@ export default function App() {
     case 'handout': page = <HandoutPage />; break
     default: page = <TodayPage />
   }
-  const active = '/' + (parts[0] === 'lesson' ? 'course' : parts[0] === 'gua' || parts[0] === 'free' ? 'atlas' : parts[0] === 'cases' || parts[0] === 'case' ? 'divine' : parts[0] || 'today')
-  const immersive = showWelcome || parts[0] === 'lesson' || parts[0] === 'free' || (parts[0] === 'gua' && Boolean(parts[1]))
+  const active = '/' + (parts[0] === 'lesson' ? 'course' : parts[0] === 'gua' ? 'atlas' : parts[0] === 'stage' ? 'course' : parts[0] === 'cases' || parts[0] === 'case' ? 'divine' : parts[0] || 'today')
+  const immersive = showWelcome || parts[0] === 'lesson' || (parts[0] === 'gua' && Boolean(parts[1]))
   return (
     <MotionConfig reducedMotion="user">
       <div className="app">

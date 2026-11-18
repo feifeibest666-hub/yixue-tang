@@ -16,9 +16,9 @@ export function GuaMapPage() {
     <div className="page gua-map">
       <header className="page-head">
         <div><div className="eyebrow">自由学 · 不按天数</div><h1>六十四卦图谱</h1></div>
-        <div className="gm-count"><b>{readN}</b><span>/ 64 已读</span></div>
+        <div className="gm-count"><b>{readN}</b><span>/ 64 已学</span></div>
       </header>
-      <p className="muted">点任意一卦，直接进入这一卦的完整一课：先拆上下卦推出卦义，再读原文和白话。不用解锁，读完记为“已读”，不影响每日进度和打卡。</p>
+      <p className="muted">点任意一卦，直接进入这一卦的完整一课：先拆上下卦推出卦义，再读原文和白话。不用解锁；学完盖章打卡，和每天一课记在同一份进度里。</p>
 
       <div className="card gm-start">
         <div>

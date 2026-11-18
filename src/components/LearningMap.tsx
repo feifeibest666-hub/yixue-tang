@@ -16,10 +16,10 @@ export function LearningMap({ completed, current }: { completed: Record<number, 
           <motion.li key={u.id} className={`lm-stage ${here ? 'here' : ''} ${finished ? 'finished' : ''}`}
             initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
             <div className="lm-node"><span>{finished ? '✓' : i + 1}</span></div>
-            <a className="lm-card" href={here && current ? `#/lesson/${current}` : '#/course'}>
+            <a className="lm-card" href={`#/stage/${u.id}`}>
               <img src={SCENE[u.scene]} alt="" loading="lazy" />
               <div className="lm-text">
-                <div className="lm-range">{u.range}</div>
+                <div className="lm-range">{u.range} · {ls.length} 课</div>
                 <div className="lm-name">{u.name}</div>
                 <div className="lm-desc">{u.desc}</div>
                 {(done > 0 || here) && (
@@ -27,23 +27,23 @@ export function LearningMap({ completed, current }: { completed: Record<number, 
                 )}
               </div>
               {here && <div className="lm-here">你在这里 · 第 {current} 天</div>}
+              <span className="lm-go" aria-hidden>›</span>
             </a>
           </motion.li>
         )
       })}
     </ol>
     <div className="lm-side">
-      <div className="lm-side-h">选修 · 随时穿插</div>
+      <div className="lm-side-h">选修 · 随时可学</div>
       <div className="lm-side-row">
         {ELECTIVE_UNITS.map((u) => {
           const ls = ELECTIVES.filter((l) => l.unit === u.id)
           const done = ls.filter((l) => completed[l.day]).length
-          const open = u.id === 'x1' ? Boolean(completed[30]) : ELECTIVES.filter((l) => l.unit === 'x1').every((l) => completed[l.day])
           return (
-            <a key={u.id} className={`lm-side-card ${open ? '' : 'locked'}`} href="#/course">
+            <a key={u.id} className="lm-side-card" href={`#/stage/${u.id}`}>
               <img src={SCENE[u.scene]} alt="" loading="lazy" />
               <b>{u.name.replace('选修 · ', '')}</b>
-              <span>{open ? `${done}/${ls.length} 课` : u.id === 'x1' ? '第 30 天后开放' : '原理学完后开放'}</span>
+              <span>{done}/{ls.length} 课 · 点开看课表</span>
             </a>
           )
         })}

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ALL_LESSONS, TOTAL_DAYS, ELECTIVE_UNITS, UNITS, guaOfDay, lessonByDay, lessonLabel, type Quiz, type Screen, type Unit } from '../data/curriculum'
 import { SCENE } from '../data/scenes'
-import { completeLesson, isRead, isUnlocked, markFreeRead, recordQuiz, scheduleInfo, useStore } from '../lib/store'
+import { completeLesson, isRead, recordQuiz, scheduleInfo, useStore } from '../lib/store'
 import { GuaBasics } from '../components/GuaBasics'
 import { Rich, Hex } from '../components/Hex'
 import { Widget } from '../components/Widgets'
@@ -16,14 +16,38 @@ export function CoursePage() {
         <div><div className="eyebrow">学程</div><h1>每天一课</h1></div>
         <a className="btn ghost sm" href="#/handout">讲义 / 导出</a>
       </header>
-      <p className="muted">主线 {TOTAL_DAYS} 天，与每日 PDF 讲义同课同序：先打基础，第 22 天起每天读一卦，读完六十四卦。</p>
+      <p className="muted">主线 {TOTAL_DAYS} 天，与每日 PDF 讲义同课同序：先打基础，第 22 天起每天读一卦，读完六十四卦。每一课都随时可以点开，顺序只是建议。</p>
       <a className="row-link free-link" href="#/gua"><span>想直接学某一卦？<b>六十四卦图谱 · 自由学</b></span><span className="arrow">去看</span></a>
       {UNITS.map((u) => <UnitBlock key={u.id} u={u} />)}
       <div className="elective-head">
         <h2 className="section-title">选修</h2>
-        <p className="muted">想先弄懂“为什么”的，可以在每天一卦之外穿插着学。不计入每日进度，也不影响打卡。</p>
+        <p className="muted">想先弄懂“为什么”的，随时可以穿插着学。学完同样盖章打卡，但不计入主线 {TOTAL_DAYS} 天的进度。</p>
       </div>
       {ELECTIVE_UNITS.map((u) => <UnitBlock key={u.id} u={u} />)}
+    </div>
+  )
+}
+
+const ALL_UNITS = [...UNITS, ...ELECTIVE_UNITS]
+
+/** 学习地图点开某一阶段：这一阶段的全部课，随时可学 */
+export function StagePage({ id }: { id: string }) {
+  const i = ALL_UNITS.findIndex((u) => u.id === id)
+  const u = ALL_UNITS[i]
+  if (!u) return <div className="page"><p>没有这一阶段。</p><a href="#/course">返回学程</a></div>
+  const prev = ALL_UNITS[i - 1], next = ALL_UNITS[i + 1]
+  return (
+    <div className="page stage">
+      <header className="lesson-head">
+        <a href="#/today" className="back" aria-label="返回">‹</a>
+        <div className="lh-mid"><div className="lh-day">{u.id.startsWith('x') ? '选修' : `第 ${i + 1} 阶段 · 共 ${UNITS.length} 阶段`}</div><div className="lh-title">{u.name}</div></div>
+      </header>
+      <UnitBlock u={u} />
+      <p className="muted center">每一课都可以直接点开，按什么顺序学都行；学完盖章就记为已学。</p>
+      <div className="nav-btns">
+        {prev ? <a className="btn ghost" href={`#/stage/${prev.id}`}>‹ {prev.name}</a> : <span />}
+        {next ? <a className="btn ghost" href={`#/stage/${next.id}`}>{next.name} ›</a> : <a className="btn ghost" href="#/course">全部课程</a>}
+      </div>
     </div>
   )
 }
@@ -46,10 +70,9 @@ function UnitBlock({ u }: { u: Unit }) {
       <div className="lesson-list">
         {ls.map((l) => {
           const isDone = Boolean(s.completed[l.day])
-          const locked = !isUnlocked(s, l.day)
-          const status = isDone ? '已学' : locked ? '未解锁' : l.elective ? '可学' : l.day === info.dayByCalendar ? '今日' : l.day < info.dayByCalendar ? '待补' : '可学'
+          const status = isDone ? '已学' : l.elective ? '可学' : l.day === info.dayByCalendar ? '今日' : l.day < info.dayByCalendar ? '待补' : '可学'
           return (
-            <a key={l.day} href={locked ? undefined : `#/lesson/${l.day}`} className={`ll ${isDone ? 'done' : ''} ${locked ? 'locked' : ''}`}>
+            <a key={l.day} href={`#/lesson/${l.day}`} className={`ll ${isDone ? 'done' : ''}`}>
               <span className="ll-day">{isDone ? '✓' : l.elective ? l.elective.split(' ')[1] : l.day}</span>
               <span className="ll-title">{l.title}</span>
               <span className={`ll-st st-${status}`}>{status}</span>
@@ -61,35 +84,14 @@ function UnitBlock({ u }: { u: Unit }) {
   )
 }
 
-/** free：自由学，不受每天解锁限制，读完只记“已读”，不打卡 */
+/** free：从六十四卦图谱进入，基础回顾默认展开，学完回到图谱 */
 export function LessonPage({ day, free = false }: { day: number; free?: boolean }) {
   const s = useStore()
   const lesson = lessonByDay(day)
-  const info = scheduleInfo(s)
   const [step, setStep] = useState(-1)
   const gua = guaOfDay(day)
   const exit = free ? '#/gua' : '#/today'
   if (!lesson || (free && day > TOTAL_DAYS)) return <div className="page"><p>没有这一课。</p><a href="#/course">返回学程</a></div>
-  if (!free && !isUnlocked(s, day))
-    return (
-      <div className="page pad">
-        <div className="card center">
-          <div className="lock-ico">锁</div>
-          {lesson.elective ? (
-            <>
-              <p>{lesson.elective} 还没开放。{lesson.unit === 'x2' ? '学完「选修 · 原理」全部 13 课后开放。' : '学完第 30 天后开放，模块内按顺序学。'}</p>
-              <a className="btn primary" href="#/course">回到学程</a>
-            </>
-          ) : (
-            <>
-              <p>第 {day} 天还没解锁。先完成第 {info.next} 天吧。</p>
-              <a className="btn primary" href={`#/lesson/${info.next}`}>去第 {info.next} 天</a>
-            </>
-          )}
-        </div>
-      </div>
-    )
-
   if (step === -1) return <LessonCover lesson={lesson} free={free} gua={gua} exit={exit} onStart={() => setStep(0)} />
 
   const total = lesson.screens.length + 1
@@ -112,7 +114,7 @@ export function LessonPage({ day, free = false }: { day: number; free?: boolean 
       <AnimatePresence mode="wait">
         {!isQuiz ? (
           <motion.div key={step} className="screen" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.28 }}>
-            {step === 0 && gua && <GuaBasics n={gua} open={free} freeLinks={free} />}
+            {step === 0 && gua && <GuaBasics n={gua} open={free} />}
             <ScreenView sc={sc} />
             <div className="nav-btns">
               <button className="btn ghost" onClick={() => setStep(step - 1)}>上一屏</button>
@@ -121,9 +123,7 @@ export function LessonPage({ day, free = false }: { day: number; free?: boolean 
           </motion.div>
         ) : (
           <motion.div key="quiz" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }}>
-            {free
-              ? <QuizRun day={lesson.day} label={gua ? `第${gua}卦` : `第${lesson.day}天`} quiz={lesson.quiz} done={isRead(s, lesson.day)} free onBack={() => setStep(lesson.screens.length - 1)} />
-              : <QuizRun day={lesson.day} label={lesson.elective ?? `第${lesson.day}天`} quiz={lesson.quiz} done={Boolean(s.completed[lesson.day])} onBack={() => setStep(lesson.screens.length - 1)} />}
+            <QuizRun day={lesson.day} label={lesson.elective ?? `第${lesson.day}天`} quiz={lesson.quiz} done={isRead(s, lesson.day)} free={free} onBack={() => setStep(lesson.screens.length - 1)} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -210,8 +210,7 @@ function QuizRun({ day, label, quiz, done, free, onBack }: { day: number; label:
     const back = free ? '#/gua' : day > 100 ? '#/course' : '#/today'
     const finish = () => {
       setStamped(true)
-      if (free) markFreeRead(day)
-      else completeLesson(day)
+      completeLesson(day)
       setTimeout(() => { window.location.hash = back }, 1500)
     }
     return (
@@ -223,13 +222,12 @@ function QuizRun({ day, label, quiz, done, free, onBack }: { day: number; label:
             {(stamped || done) && (
               <motion.div className="big-stamp" initial={{ scale: 2.6, opacity: 0, rotate: -24 }} animate={{ scale: 1, opacity: 1, rotate: -8 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 18 }}>
-                <span>{label}</span><b>{free ? '已读' : '已学'}</b>
+                <span>{label}</span><b>已学</b>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-        {!done && !stamped && <button className="btn primary block xl" onClick={finish}>{free ? '盖章 · 标为已读' : '盖章打卡'}</button>}
-        {free && !done && !stamped && <p className="muted center">自由学只记“已读”，不算每日打卡。</p>}
+        {!done && !stamped && <button className="btn primary block xl" onClick={finish}>盖章打卡</button>}
         {done && <a className="btn primary block" href={back}>{free ? '回到六十四卦图谱' : day > 100 ? '返回学程' : '返回今日'}</a>}
         <button className="btn ghost block" onClick={() => { setI(0); setScore(0); setChosen(null); setFinished(false) }}>再做一遍</button>
       </div>

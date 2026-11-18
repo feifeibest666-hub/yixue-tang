@@ -18,12 +18,12 @@ function TriRow({ t, role }: { t: Trigram; role: string }) {
 }
 
 /** 每一卦开头的基础回顾：只讲看懂这一卦必需的几件事，都由本卦的卦画推出 */
-export function GuaBasics({ n, open, freeLinks }: { n: number; open?: boolean; freeLinks?: boolean }) {
+export function GuaBasics({ n, open }: { n: number; open?: boolean }) {
   const h = HEXAGRAMS[n - 1]
   const yang = h.lines.filter((l) => l === 1).length
   const lo = h.lower, up = h.upper
   const pure = lo.name === up.name
-  const link = (day: number) => (freeLinks ? `#/free/${day}` : `#/lesson/${day}`)
+  const link = (day: number) => `#/lesson/${day}`
   return (
     <details className="gua-basics" open={open}>
       <summary>

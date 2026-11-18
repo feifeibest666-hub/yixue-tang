@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { ELECTIVES, TOTAL_DAYS } from '../data/curriculum'
+import { TOTAL_DAYS } from '../data/curriculum'
 
 export interface Card { box: number; due: string; lapses: number; seen: number }
 export interface WrongQ { day: number; idx: number; count: number; last: string }
@@ -25,7 +25,7 @@ export interface State {
   wrong: Record<string, WrongQ>
   cases: SavedCase[]
   onboarded?: boolean
-  /** 自由学读过的课（课号 -> 日期），不计入每日进度和打卡 */
+  /** 旧版自由学记下的“已读”（课号 -> 日期）；现在学完一律记入 completed，这里只读不写 */
   freeRead?: Record<number, string>
 }
 
@@ -75,18 +75,7 @@ export function scheduleInfo(s: State, today = todayStr()) {
   const todayLesson = done(dayByCalendar) ? null : dayByCalendar
   let next = 1
   while (next <= TOTAL_DAYS && done(next)) next++
-  const unlockedUpTo = Math.max(dayByCalendar, next)
-  return { dayByCalendar, missed, todayLesson, next: next > TOTAL_DAYS ? null : next, unlockedUpTo, doneCount: Object.keys(s.completed).filter((d) => Number(d) <= TOTAL_DAYS).length }
-}
-
-/** 选修：学完第 30 天后开放原理；原理全部学完后开放梅花；各模块内按顺序 */
-export function isUnlocked(s: State, day: number) {
-  if (day <= TOTAL_DAYS) return day <= scheduleInfo(s).unlockedUpTo
-  const l = ELECTIVES.find((x) => x.day === day)
-  if (!l || !s.completed[30]) return false
-  const mod = ELECTIVES.filter((x) => x.unit === l.unit)
-  const prereq = l.unit === 'x2' ? ELECTIVES.filter((x) => x.unit === 'x1') : []
-  return [...prereq, ...mod.filter((x) => x.day < day)].every((x) => s.completed[x.day])
+  return { dayByCalendar, missed, todayLesson, next: next > TOTAL_DAYS ? null : next, doneCount: Object.keys(s.completed).filter((d) => Number(d) <= TOTAL_DAYS).length }
 }
 
 export function completeLesson(day: number) {
@@ -97,12 +86,6 @@ export function completeLesson(day: number) {
   })
 }
 
-export function markFreeRead(day: number) {
-  update((s) => {
-    s.freeRead = s.freeRead ?? {}
-    if (!s.freeRead[day]) s.freeRead[day] = todayStr()
-  })
-}
 export const isRead = (s: State, day: number) => Boolean(s.completed[day] || s.freeRead?.[day])
 
 export function streak(s: State, today = todayStr()) {

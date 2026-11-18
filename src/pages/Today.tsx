@@ -59,7 +59,7 @@ export function TodayPage() {
         <span className="fe-hex"><Hex lines={[1, 1, 1, 1, 1, 1]} size={30} /><Hex lines={[0, 0, 0, 0, 0, 0]} size={30} /></span>
         <span className="fe-t">
           <b>直接学 64 卦</b>
-          <span>不按天数，点哪卦学哪卦 · 已读 {HEXAGRAMS.filter((h) => isRead(s, guaLessonDay(h.n))).length}/64</span>
+          <span>不按天数，点哪卦学哪卦 · 已学 {HEXAGRAMS.filter((h) => isRead(s, guaLessonDay(h.n))).length}/64</span>
         </span>
         <span className="fe-arrow">›</span>
       </a>
@@ -111,7 +111,7 @@ export function TodayPage() {
             <label className="row between">开始学习日期
               <input type="date" value={s.startDate} max={today} onChange={(e) => e.target.value && setStartDate(e.target.value)} />
             </label>
-            <p className="muted">课程按开始日期每天解锁一课；漏学的课会出现在“待补”。数据只保存在本机浏览器。</p>
+            <p className="muted">按开始日期每天建议一课，漏学的课会出现在“待补”；所有课随时都能点开，按任何顺序学。数据只保存在本机浏览器。</p>
             <div className="row">
               <a className="btn ghost sm" href="#/welcome">重看欢迎页</a>
               <button className="btn danger sm" onClick={() => confirm('确定清除所有学习记录吗？') && resetAll()}>清除全部数据</button>
