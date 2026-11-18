@@ -17,7 +17,6 @@ export function CoursePage() {
         <a className="btn ghost sm" href="#/handout">讲义 / 导出</a>
       </header>
       <p className="muted">主线 {TOTAL_DAYS} 天，与每日 PDF 讲义同课同序：先打基础，第 22 天起每天读一卦，读完六十四卦。每一课都随时可以点开，顺序只是建议。</p>
-      <a className="row-link free-link" href="#/gua"><span>想直接学某一卦？<b>六十四卦图谱 · 自由学</b></span><span className="arrow">去看</span></a>
       {UNITS.map((u) => <UnitBlock key={u.id} u={u} />)}
       <div className="elective-head">
         <h2 className="section-title">选修</h2>
