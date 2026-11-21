@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "check": "tsx scripts/check-migration.ts && tsx scripts/selfcheck.ts"
+    "check": "tsx scripts/check-migration.ts && tsx scripts/selfcheck.ts && tsx scripts/check-liuyao.ts"
   },
   "dependencies": {
     "lunar-javascript": "^1.7.8",
