@@ -15,6 +15,11 @@ export function AtlasPage() {
   return (
     <div className="page">
       <header className="page-head"><div><div className="eyebrow">卦典</div><h1>六十四卦</h1></div></header>
+      <nav className="tool-row" aria-label="工具">
+        <a href="#/liuyao">六爻排盘</a>
+        <a href="#/reader">原文对照</a>
+        <a href="#/journal">占筮日记</a>
+      </nav>
       <p className="muted">通行本原文 · 逐卦白话。点开任意一卦读卦辞、爻辞与大象。</p>
       <a className="free-entry slim" href="#/gua">
         <span className="fe-t"><b>想从头学懂某一卦？</b><span>六十四卦图谱 · 自由学：每卦一整课，带基础回顾</span></span>

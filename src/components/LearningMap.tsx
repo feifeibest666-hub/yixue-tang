@@ -1,9 +1,13 @@
 import { motion } from 'motion/react'
-import { ELECTIVES, ELECTIVE_UNITS, LESSONS, UNITS } from '../data/curriculum'
+import { ADV_UNITS, ELECTIVES, ELECTIVE_UNITS, LESSONS, UNITS, unitDayRange } from '../data/curriculum'
 import { SCENE } from '../data/scenes'
 
 export function LearningMap({ completed, current }: { completed: Record<number, string>; current: number | null }) {
-  const curUnit = current ? LESSONS.find((l) => l.day === current)?.unit : undefined
+  const curLesson = current ? LESSONS.find((l) => l.day === current) : undefined
+  const curUnit = curLesson?.unit ?? (current ? [...UNITS, ...ADV_UNITS].find((u) => {
+    const r = unitDayRange(u)
+    return Boolean(r && current >= r[0] && current <= r[1])
+  })?.id : undefined)
   return (
     <>
     <ol className="lmap">
@@ -48,6 +52,23 @@ export function LearningMap({ completed, current }: { completed: Record<number, 
           )
         })}
       </div>
+    </div>
+    <div className="lm-adv">
+      <div className="lm-side-h">进阶 · 精通之路</div>
+      {ADV_UNITS.map((u) => {
+        const ls = LESSONS.filter((l) => l.unit === u.id)
+        const done = ls.filter((l) => completed[l.day]).length
+        const here = u.id === curUnit
+        return (
+          <a key={u.id} className={`lm-adv-row ${here ? 'here' : ''}`} href={`#/stage/${u.id}`}>
+            <span className="lm-adv-n">{u.id.slice(1)}</span>
+            <span className="lm-adv-name">{u.name}</span>
+            <span className="lm-adv-meta">{ls.length ? `${done}/${ls.length}` : '制作中'}</span>
+            {here && <span className="lm-adv-here">你在这里 · 第 {current} 天</span>}
+            <span className="lm-go" aria-hidden>›</span>
+          </a>
+        )
+      })}
     </div>
     </>
   )

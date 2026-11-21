@@ -1,26 +1,12 @@
+import { ADV_LESSONS } from './adv'
 import { HEXAGRAMS, yaoTitle } from './bagua'
 import { GUA_NOTES } from './guaNotes'
 import { TRIGRAM_SCENE } from './scenes'
 import type { SceneKey } from './scenes'
+import type { Lesson, Quiz, Screen, Tag, WidgetName } from './types'
 
-export type WidgetName =
-  | 'yinyangSort' | 'taiji' | 'yaoBrush' | 'sixiangScene' | 'trigramScene' | 'taipi' | 'coin3' | 'coin6' | 'lookup'
-  | 'trigramCards' | 'trigramExplorer' | 'xiantianMap' | 'houtianMap' | 'wuxingCycle' | 'hexBuilder' | 'yaoPosition'
-  | 'huBian' | 'meihuaNumber'
-
-export type Tag = '为什么' | '结论' | '约定' | '例子' | '小结'
-export type Screen =
-  | { t: 'text'; title: string; body: string; tag?: Tag }
-  | { t: 'widget'; title: string; body?: string; w: WidgetName }
-  | { t: 'hex'; title: string; n: number }
-
-export interface Quiz { q: string; opts: string[]; a: number; ex: string }
-export interface Lesson {
-  day: number; unit: string; title: string; subtitle: string; scene: SceneKey
-  minutes: number; goal: string; screens: Screen[]; quiz: Quiz[]
-  /** 选修课的编号，如“原理 3”；主线课没有 */
-  elective?: string
-}
+export type { QA, Quiz, Lesson, Screen, Tag, ToolName, WidgetName } from './types'
+export { WIDGET_NAMES } from './types'
 
 const T = (title: string, body: string, tag?: Tag): Screen => ({ t: 'text', title, body, tag })
 const W = (w: WidgetName, title: string, body?: string): Screen => ({ t: 'widget', w, title, body })
@@ -46,6 +32,33 @@ export const ELECTIVE_UNITS: Unit[] = [
   { id: 'x1', name: '选修 · 原理', range: '原理 1–13 · 随时可学', desc: '先天数、两种方位、五行、类象、爻位、互卦变卦的来历', scene: 'shui' },
   { id: 'x2', name: '选修 · 梅花易数', range: '梅花 1–10 · 随时可学，建议先读原理', desc: '起卦为何除以 8 和 6、体用为何这样定、怎样复盘', scene: 'meihua' },
 ]
+
+/** 进阶 · 第 87–730 天。range 用「第 X–Y 天」，供课表和自检对齐。 */
+export const ADV_UNITS: Unit[] = [
+  { id: 'a1', name: '筮与数', range: '第 87–114 天', desc: '从《系辞》大衍章亲手推出 6/7/8/9 和它们的概率；比较硬币法；学朱熹变占规则；读《左传》《国语》真实筮例；开始占筮日记。', scene: 'book' },
+  { id: 'a2', name: '经与传', range: '第 115–149 天', desc: '卦爻辞的年代内证、三易、十翼篇目与作者之争、通行本与帛书简本、两派六宗和注家地图。', scene: 'book' },
+  { id: 'a3', name: '爻位体例', range: '第 150–184 天', desc: '时与位、中正应比承乘据、卦主、象辞与占辞；用统计检验「二多誉、四多惧」；「贞」「孚」「元亨利贞」的训诂之争。', scene: 'yinyang' },
+  { id: 'a4', name: '象数 I', range: '第 185–219 天', desc: '把错、综、互、变当作四种运算来推（互卦最终只收敛到 4 卦）；对照卦变与取象，并看王弼对可检验性的批评。', scene: 'shan' },
+  { id: 'a5', name: '十翼精读 · 上经', range: '第 220–261 天', desc: '上经三十卦：每卦读彖、大象、六条小象，用前四阶段的工具推一遍，再对照注家读法，指出分歧。', scene: 'tian' },
+  { id: 'a6', name: '十翼精读 · 下经', range: '第 262–310 天', desc: '下经三十四卦：每卦读彖、大象、六条小象，用前四阶段的工具推一遍，再对照注家读法，指出分歧。', scene: 'di' },
+  { id: 'a7', name: '文言与系辞上', range: '第 311–345 天', desc: '文言与系辞上逐章精读：易的哲学纲领从原文一步步推出来。', scene: 'feng' },
+  { id: 'a8', name: '系辞下与说序杂', range: '第 346–380 天', desc: '系辞下、说卦、序卦、杂卦逐章精读：八卦象的总库，以及卦序的逻辑和它的漏洞。', scene: 'shui' },
+  { id: 'a9', name: '图书之学', range: '第 381–408 天', desc: '河图洛书从「天地之数」怎样被画成图、陈抟—邵雍—朱熹的传承、黄宗羲胡渭的辨伪；先天后天的数理与历史。', scene: 'yinyang' },
+  { id: 'a10', name: '象数 II · 汉易', range: '第 409–450 天', desc: '孟喜卦气与十二消息卦、京房八宫的世应、纳甲纳支怎样配上爻、郑玄爻辰与虞翻。', scene: 'huo' },
+  { id: 'a11', name: '干支五行', range: '第 451–485 天', desc: '十天干、十二地支、六十甲子（推出为什么是 60）、月建日辰、十二长生、冲合刑害、旬空、六亲。', scene: 'lei' },
+  { id: 'a12', name: '六爻纳甲 I', range: '第 486–534 天', desc: '装卦七步全部手算：用神、原神忌神仇神、旺衰、动变、回头生克、月破、旬空、伏神飞神、进退神、反吟伏吟、应期。', scene: 'shui' },
+  { id: 'a13', name: '六爻纳甲 II', range: '第 535–583 天', desc: '分类占，读《黄金策》《卜筮正宗》《增删卜易》的例子，并看野鹤与古法之争。', scene: 'huo' },
+  { id: 'a14', name: '梅花易数进阶', range: '第 584–618 天', desc: '先天与后天起卦、外应三要、万物类象、应期、互变的细节，以及梅花与六爻同问对照。', scene: 'meihua' },
+  { id: 'a15', name: '注家与义理', range: '第 619–660 天', desc: '七大注家分题比较；时、位、中、变通、忧患、谦等义理专题；易与儒道、以及和莱布尼茨二进制的关系。', scene: 'book' },
+  { id: 'a16', name: '实战与批判', range: '第 661–702 天', desc: '真实占例、日记统计（命中率怎么算才公平）、巴纳姆效应、确认偏差、事后解释、预言自证；建立自己的立场。', scene: 'ze' },
+  { id: 'a17', name: '讲解与毕业', range: '第 703–730 天', desc: '五讲讲稿、为初学者写一课、答辩问答、毕业报告。', scene: 'tian' },
+]
+
+/** 「第 87–114 天」→ [87, 114]；选修那种不含起止天数的 range 返回 null。 */
+export function unitDayRange(u: Unit): [number, number] | null {
+  const m = u.range.match(/第\s*(\d+)\s*[–-]\s*(\d+)\s*天/)
+  return m ? [Number(m[1]), Number(m[2])] : null
+}
 
 const base: Lesson[] = [
   // ───────── 第一阶段：打地基（与每日讲义第 1–7 天同课） ─────────
@@ -385,7 +398,7 @@ const base: Lesson[] = [
     Q('“吝”的意思是？', ['小有困难、遗憾', '吝啬'], 0, '吝=小麻烦。'),
   ], 15),
 
-  // ───────── 选修 · 原理（原第 31–43 课，编号 101–113） ─────────
+  // ───────── 选修 · 原理（原第 31–43 课，编号 1101–1113） ─────────
   L(31, 'u5', 'yinyang', '先天八卦数：为什么是乾一兑二', '不用背，按生长顺序数出来', '能从“加一倍”推出先天数', [
     T('还记得生长图吗', '太极 → 两仪 → 四象 → 八卦，每一层**一分为二**，阳在前、阴在后。\n\n宋代邵雍把这个过程叫“**加一倍法**”。'),
     W('sixiangScene', '先回忆：两条线的四象'),
@@ -679,13 +692,16 @@ const guaDays: Lesson[] = HEXAGRAMS.slice(8).map((h) => {
 const electives: Lesson[] = base.filter((l) => l.day >= 31).map((l) => {
   const inPrinciples = l.unit === 'u5'
   const k = inPrinciples ? l.day - 30 : l.day - 43
-  return { ...l, day: l.day + 70, unit: inPrinciples ? 'x1' : 'x2', elective: `${inPrinciples ? '原理' : '梅花'} ${k}` }
+  return { ...l, day: l.day + 1070, unit: inPrinciples ? 'x1' : 'x2', elective: `${inPrinciples ? '原理' : '梅花'} ${k}` }
 })
 
-/** 主线：每天一课（第 1–86 天） */
-export const LESSONS: Lesson[] = [...base.filter((l) => l.day <= 30), ...guaDays]
+/** 主线天数。进阶接在后面，不改这 86 天。 */
+export const MAIN_DAYS = 86
+const mainLessons: Lesson[] = [...base.filter((l) => l.day <= 30), ...guaDays]
+/** 主线 86 天 + 已写入的进阶课，按天排序。课还没写时长度仍是 86。 */
+export const LESSONS: Lesson[] = [...mainLessons, ...ADV_LESSONS].sort((a, b) => a.day - b.day)
 export const TOTAL_DAYS = LESSONS.length
-/** 选修：原理 101–113，梅花 114–123 */
+/** 选修：原理 1101–1113，梅花 1114–1123。标签仍是「原理 3」「梅花 5」。 */
 export const ELECTIVES: Lesson[] = electives
 export const ALL_LESSONS: Lesson[] = [...LESSONS, ...ELECTIVES]
 export const lessonByDay = (d: number) => ALL_LESSONS.find((l) => l.day === d)
@@ -693,6 +709,6 @@ export const lessonLabel = (l: Lesson) => l.elective ?? `第 ${l.day} 天`
 
 /** 第 n 卦对应的主线课：乾–比在第 22–29 天，其余为卦序 + 22 */
 export const guaLessonDay = (n: number) => (n <= 8 ? n + 21 : n + 22)
-/** 主线课讲的是第几卦；不是“读一卦”的课返回 null */
+/** 主线课讲的是第几卦。只认第 22–29 天和第 31–86 天，第 30 天和进阶日都不是读卦课。 */
 export const guaOfDay = (day: number) =>
-  day >= 22 && day <= 29 ? day - 21 : day >= 31 && day <= TOTAL_DAYS ? day - 22 : null
+  day >= 22 && day <= 29 ? day - 21 : day >= 31 && day <= MAIN_DAYS ? day - 22 : null

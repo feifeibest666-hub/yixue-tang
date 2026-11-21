@@ -6,6 +6,9 @@ import { AtlasPage, GuaDetail } from './pages/Atlas'
 import { PracticePage } from './pages/Practice'
 import { DivinePage, CasesPage, CaseDetail } from './pages/Divine'
 import { HandoutPage } from './pages/Handout'
+import { JournalPage } from './pages/Journal'
+import { LiuyaoPage } from './pages/Liuyao'
+import { ReaderPage } from './pages/Reader'
 import { WelcomePage } from './pages/Welcome'
 import { GuaMapPage } from './pages/GuaMap'
 import { guaLessonDay } from './data/curriculum'
@@ -40,6 +43,9 @@ export default function App() {
     case 'course': page = <CoursePage />; break
     case 'lesson': page = <LessonPage day={Number(parts[1])} />; break
     case 'stage': page = <StagePage id={parts[1]} />; break
+    case 'liuyao': page = <LiuyaoPage />; break
+    case 'reader': page = <ReaderPage book={parts[1]} index={parts[2]} />; break
+    case 'journal': page = <JournalPage />; break
     case 'gua': page = parts[1] ? <LessonPage day={guaLessonDay(Number(parts[1]))} free /> : <GuaMapPage />; break
     case 'atlas': page = parts[1] ? <GuaDetail n={Number(parts[1])} /> : <AtlasPage />; break
     case 'practice': page = <PracticePage mode={parts[1]} />; break
@@ -49,7 +55,12 @@ export default function App() {
     case 'handout': page = <HandoutPage />; break
     default: page = <TodayPage />
   }
-  const active = '/' + (parts[0] === 'lesson' ? 'course' : parts[0] === 'gua' ? 'atlas' : parts[0] === 'stage' ? 'course' : parts[0] === 'cases' || parts[0] === 'case' ? 'divine' : parts[0] || 'today')
+  const section =
+    parts[0] === 'lesson' || parts[0] === 'stage' ? 'course'
+    : parts[0] === 'gua' || parts[0] === 'atlas' || parts[0] === 'reader' ? 'atlas'
+    : parts[0] === 'cases' || parts[0] === 'case' || parts[0] === 'divine' || parts[0] === 'liuyao' || parts[0] === 'journal' ? 'divine'
+    : parts[0] || 'today'
+  const active = '/' + section
   const immersive = showWelcome || parts[0] === 'lesson' || (parts[0] === 'gua' && Boolean(parts[1]))
   return (
     <MotionConfig reducedMotion="user">

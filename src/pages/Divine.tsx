@@ -59,6 +59,11 @@ export function DivinePage() {
         <div><div className="eyebrow">起卦</div><h1>梅花易数</h1></div>
         <a className="btn ghost sm" href="#/cases">我的占例 {s.cases.length ? `(${s.cases.length})` : ''}</a>
       </header>
+      <nav className="tool-row" aria-label="工具">
+        <a href="#/liuyao">六爻排盘</a>
+        <a href="#/reader">原文对照</a>
+        <a href="#/journal">占筮日记</a>
+      </nav>
       <div className="divine-banner">
         <img src={SCENE.meihua} alt="" />
         <p>以时间或数字取象，得本、互、变三卦，<br />再看体用生克。每一步都写出算式。</p>
@@ -128,10 +133,10 @@ export function CasesPage() {
         const ben = HEXAGRAMS[c.benN - 1], bian = HEXAGRAMS[c.bianN - 1]
         return (
           <a key={c.id} href={`#/case/${c.id}`} className="card case-row">
-            <Hex lines={ben.lines} size={40} moving={c.moving} />
+            {ben && <Hex lines={ben.lines} size={40} moving={c.moving} />}
             <div className="grow">
               <b>{c.question}</b>
-              <div className="muted">{ben.name} 之 {bian.name} · {c.relation} · {new Date(c.createdAt).toLocaleDateString('zh-CN')}</div>
+              <div className="muted">{ben && bian ? `${ben.name} 之 ${bian.name} · ${c.relation} · ` : `${c.method} · `}{new Date(c.createdAt).toLocaleDateString('zh-CN')}</div>
             </div>
             <span className={`ll-st ${c.review ? 'st-已学' : 'st-待补'}`}>{c.review ? '已复盘' : '待复盘'}</span>
           </a>
@@ -149,6 +154,22 @@ export function CaseDetail({ id }: { id: string }) {
   const [judge, setJudge] = useState(c?.myJudgement ?? '')
   const [ok, setOk] = useState(false)
   if (!c) return <div className="page"><a href="#/cases">返回</a><p>找不到这个占例。</p></div>
+  if (c.method !== 'time' && c.method !== 'number') {
+    return (
+      <div className="page">
+        <header className="lesson-head">
+          <a href="#/cases" className="back">‹</a>
+          <div className="lh-mid"><div className="lh-day">{c.method === 'liuyao' ? '六爻' : '大衍'}</div><div className="lh-title">{c.question}</div></div>
+        </header>
+        <section className="card">
+          {c.prediction && <p>事先写下的预测：{c.prediction}</p>}
+          {c.confidence != null && <p className="muted">置信度 {c.confidence}</p>}
+          {c.hit && <p className="muted">结果：{c.hit === 'hit' ? '命中' : c.hit === 'miss' ? '未中' : '说不清'}</p>}
+          <p className="muted">完整排盘在占筮日记里看。</p>
+        </section>
+      </div>
+    )
+  }
   const r = c.method === 'time'
     ? castByTime({ date: new Date(c.params.time!), lateZiNextDay: Boolean(c.params.lateZi) })
     : castByNumber(c.params.a!, c.params.b!, Boolean(c.params.addHour), new Date(c.createdAt))

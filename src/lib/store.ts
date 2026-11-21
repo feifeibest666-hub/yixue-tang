@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { TOTAL_DAYS } from '../data/curriculum'
+import { LESSONS, TOTAL_DAYS } from '../data/curriculum'
 
 export interface Card { box: number; due: string; lapses: number; seen: number }
 export interface WrongQ { day: number; idx: number; count: number; last: string }
@@ -7,7 +7,7 @@ export interface SavedCase {
   id: string
   createdAt: string
   question: string
-  method: 'time' | 'number'
+  method: 'time' | 'number' | 'liuyao' | 'dayan'
   inputLabel: string
   params: { a?: number; b?: number; addHour?: boolean; time?: string; lateZi?: boolean }
   benN: number; huN: number; bianN: number; moving: number
@@ -15,6 +15,14 @@ export interface SavedCase {
   myJudgement: string
   outcome: string
   review: string
+  /** 事先写下、事后可以对照的预测 */
+  prediction?: string
+  /** 0–100 */
+  confidence?: number
+  deadline?: string
+  hit?: 'hit' | 'miss' | 'unclear'
+  /** 六爻自下而上，每爻 6 / 7 / 8 / 9 */
+  raw?: number[]
 }
 
 export interface State {
@@ -27,6 +35,12 @@ export interface State {
   onboarded?: boolean
   /** 旧版自由学记下的“已读”（课号 -> 日期）；现在学完一律记入 completed，这里只读不写 */
   freeRead?: Record<number, string>
+  /** 讲给我听：每天一份讲解和已勾的要点序号 */
+  teach: Record<number, { text: string; ticks: number[] }>
+  /** 练习清单：每天已勾的条目序号 */
+  tasks: Record<number, number[]>
+  /** 存档版本。缺省或 <2 时，把选修课号 101–123 迁到 1101–1123。 */
+  v?: number
 }
 
 const KEY = 'zhouyi-xuexi-v1'
@@ -42,17 +56,85 @@ export const daysBetween = (a: string, b: string) => {
   return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000)
 }
 
+function blankState(): State {
+  return { startDate: todayStr(), completed: {}, checkins: [], cards: {}, wrong: {}, cases: [], teach: {}, tasks: {}, v: 2 }
+}
+
+const OLD_ELECTIVE = (n: number) => Number.isInteger(n) && n >= 101 && n <= 123
+
+/** 键是纯天数，或「天数-…」「天数:…」时，把 101–123 加上 1000。 */
+function shiftDayKey(key: string): string {
+  const m = /^(\d+)(.*)$/.exec(key)
+  if (!m || String(Number(m[1])) !== m[1]) return key
+  const n = Number(m[1])
+  if (!OLD_ELECTIVE(n)) return key
+  if (m[2] !== '' && !m[2].startsWith('-') && !m[2].startsWith(':')) return key
+  return `${n + 1000}${m[2]}`
+}
+
+function shiftDays<T>(rec: Record<number, T> | undefined): Record<number, T> {
+  const out: Record<number, T> = {}
+  for (const [k, v] of Object.entries(rec ?? {})) {
+    const n = Number(k)
+    if (String(n) === k && OLD_ELECTIVE(n)) out[n + 1000] = v
+    else if (String(n) === k) out[n] = v
+  }
+  return out
+}
+
+function shiftWrong(wrong: Record<string, WrongQ> | undefined): Record<string, WrongQ> {
+  const out: Record<string, WrongQ> = {}
+  for (const [k, w] of Object.entries(wrong ?? {})) {
+    const day = OLD_ELECTIVE(w.day) ? w.day + 1000 : w.day
+    out[shiftDayKey(k)] = { ...w, day }
+  }
+  return out
+}
+
+function shiftCards(cards: Record<string, Card> | undefined): Record<string, Card> {
+  const out: Record<string, Card> = {}
+  for (const [k, v] of Object.entries(cards ?? {})) out[shiftDayKey(k)] = v
+  return out
+}
+
+/** 旧存档里 101–123 都是选修。进阶课用这些号是后来的事，所以整段搬到 1101–1123。已是 v≥2 的不再搬。 */
+export function migrateState(raw: Partial<State> = {}): State {
+  const s: State = {
+    ...blankState(),
+    ...raw,
+    completed: { ...(raw.completed ?? {}) },
+    checkins: [...(raw.checkins ?? [])],
+    cards: { ...(raw.cards ?? {}) },
+    wrong: { ...(raw.wrong ?? {}) },
+    cases: [...(raw.cases ?? [])],
+    teach: { ...(raw.teach ?? {}) },
+    tasks: { ...(raw.tasks ?? {}) },
+    freeRead: raw.freeRead ? { ...raw.freeRead } : undefined,
+    v: raw.v,
+  }
+  if ((s.v ?? 0) >= 2) return s
+  s.completed = shiftDays(s.completed)
+  s.freeRead = s.freeRead ? shiftDays(s.freeRead) : undefined
+  s.teach = shiftDays(s.teach)
+  s.tasks = shiftDays(s.tasks)
+  s.wrong = shiftWrong(s.wrong)
+  s.cards = shiftCards(s.cards)
+  s.v = 2
+  return s
+}
+
 function load(): State {
   try {
+    if (typeof localStorage === 'undefined') return blankState()
     const raw = localStorage.getItem(KEY)
-    if (raw) return { completed: {}, checkins: [], cards: {}, wrong: {}, cases: [], ...JSON.parse(raw) }
+    if (raw) return migrateState(JSON.parse(raw) as Partial<State>)
   } catch { /* 数据损坏时重新开始 */ }
-  return { startDate: todayStr(), completed: {}, checkins: [], cards: {}, wrong: {}, cases: [] }
+  return blankState()
 }
 
 let state: State = load()
 const listeners = new Set<() => void>()
-const persist = () => localStorage.setItem(KEY, JSON.stringify(state))
+const persist = () => { if (typeof localStorage !== 'undefined') localStorage.setItem(KEY, JSON.stringify(state)) }
 persist()
 
 export function update(fn: (s: State) => State | void) {
@@ -67,15 +149,27 @@ export const useStore = () =>
 export const getState = () => state
 
 // ── 每日课程进度 ──
+const lessonDays = new Set(LESSONS.map((l) => l.day))
+
 export function scheduleInfo(s: State, today = todayStr()) {
   const dayByCalendar = Math.min(TOTAL_DAYS, daysBetween(s.startDate, today) + 1)
   const done = (d: number) => Boolean(s.completed[d])
   const missed: number[] = []
-  for (let d = 1; d < dayByCalendar; d++) if (!done(d)) missed.push(d)
-  const todayLesson = done(dayByCalendar) ? null : dayByCalendar
+  for (let d = 1; d < dayByCalendar; d++) if (lessonDays.has(d) && !done(d)) missed.push(d)
+  const todayLesson = !lessonDays.has(dayByCalendar) || done(dayByCalendar) ? null : dayByCalendar
   let next = 1
-  while (next <= TOTAL_DAYS && done(next)) next++
-  return { dayByCalendar, missed, todayLesson, next: next > TOTAL_DAYS ? null : next, doneCount: Object.keys(s.completed).filter((d) => Number(d) <= TOTAL_DAYS).length }
+  while (next <= TOTAL_DAYS && (done(next) || !lessonDays.has(next))) next++
+  return {
+    dayByCalendar, missed, todayLesson, next: next > TOTAL_DAYS ? null : next,
+    doneCount: Object.keys(s.completed).filter((d) => lessonDays.has(Number(d))).length,
+  }
+}
+
+export function saveTeach(day: number, text: string, ticks: number[]) {
+  update((s) => { s.teach[day] = { text, ticks: [...ticks] } })
+}
+export function saveTasks(day: number, ticks: number[]) {
+  update((s) => { s.tasks[day] = [...ticks] })
 }
 
 export function completeLesson(day: number) {

@@ -7,6 +7,23 @@ import {
 } from '../data/bagua'
 import type { WidgetName } from '../data/curriculum'
 import { castByNumber } from '../lib/meihua'
+import Bagong from './adv/Bagong'
+import Biangua from './adv/Biangua'
+import Changsheng from './adv/Changsheng'
+import CoinCast3 from './adv/CoinCast3'
+import Dayan from './adv/Dayan'
+import GanzhiWheel from './adv/GanzhiWheel'
+import Guaqi from './adv/Guaqi'
+import Guaxu from './adv/Guaxu'
+import Hetu from './adv/Hetu'
+import LiuyaoMini from './adv/LiuyaoMini'
+import Luoshu from './adv/Luoshu'
+import Najia from './adv/Najia'
+import ProbStats from './adv/ProbStats'
+import Transform from './adv/Transform'
+import Xiantian64 from './adv/Xiantian64'
+import Xiaoxi from './adv/Xiaoxi'
+import YaoStats from './adv/YaoStats'
 
 export function Widget({ name }: { name: WidgetName }) {
   switch (name) {
@@ -28,6 +45,27 @@ export function Widget({ name }: { name: WidgetName }) {
     case 'yaoPosition': return <YaoPosition />
     case 'huBian': return <HuBian />
     case 'meihuaNumber': return <MeihuaNumber />
+    case 'dayan': return <Dayan />
+    case 'probStats': return <ProbStats />
+    case 'coinCast3': return <CoinCast3 />
+    case 'biangua': return <Biangua />
+    case 'transform': return <Transform />
+    case 'xiaoxi': return <Xiaoxi />
+    case 'guaqi': return <Guaqi />
+    case 'bagong': return <Bagong />
+    case 'najia': return <Najia />
+    case 'hetu': return <Hetu />
+    case 'luoshu': return <Luoshu />
+    case 'xiantian64': return <Xiantian64 />
+    case 'ganzhiWheel': return <GanzhiWheel />
+    case 'changsheng': return <Changsheng />
+    case 'yaoStats': return <YaoStats />
+    case 'liuyaoMini': return <LiuyaoMini />
+    case 'guaxu': return <Guaxu />
+    default: {
+      const _exhaustive: never = name
+      return _exhaustive
+    }
   }
 }
 

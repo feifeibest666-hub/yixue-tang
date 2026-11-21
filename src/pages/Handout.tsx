@@ -1,4 +1,4 @@
-import { ELECTIVES, ELECTIVE_UNITS, LESSONS, UNITS, lessonLabel, type Lesson, type Screen, type WidgetName } from '../data/curriculum'
+import { ADV_UNITS, ELECTIVES, ELECTIVE_UNITS, LESSONS, UNITS, lessonLabel, type Lesson, type Screen, type WidgetName } from '../data/curriculum'
 import { HEXAGRAMS } from '../data/bagua'
 import { Rich } from '../components/Hex'
 
@@ -21,13 +21,43 @@ const WIDGET_NOTE: Record<WidgetName, string> = {
   yaoPosition: '【互动】爻位、当位、居中、相应（见应用）',
   huBian: '【互动】互卦变卦演示（见应用）',
   meihuaNumber: '【互动】数字起卦练习（见应用）',
+  dayan: '【互动】大衍筮法：四十九根蓍草，分二挂一揲四（见应用）',
+  probStats: '【互动】蓍草与硬币的 6/7/8/9 频率对照（见应用）',
+  coinCast3: '【互动】三枚铜钱金钱卦（见应用）',
+  biangua: '【互动】由 6–9 推出本卦、之卦和应读的文字（见应用）',
+  transform: '【互动】错、综、互、变的象数运算台（见应用）',
+  xiaoxi: '【图】十二消息卦（见应用）',
+  guaqi: '【图】卦气：节气与四正卦（见应用）',
+  bagong: '【表】京房八宫，标出世应（见应用）',
+  najia: '【表】纳甲纳支（见应用）',
+  hetu: '【图】河图（见应用）',
+  luoshu: '【图】洛书（见应用）',
+  xiantian64: '【图】先天六十四卦圆图与方图（见应用）',
+  ganzhiWheel: '【图】天干地支，冲合刑害（见应用）',
+  changsheng: '【表】十二长生（见应用）',
+  yaoStats: '【互动】爻辞吉凶词统计（见应用）',
+  liuyaoMini: '【互动】六爻排盘（见应用）',
+  guaxu: '【表】通行本、帛书、八宫、先天四种卦序（见应用）',
 }
 
 function screenMd(s: Screen): string {
-  if (s.t === 'text') return `### ${s.tag ? `【${s.tag}】` : ''}${s.title}\n\n${s.body.replace(/\n/g, '  \n')}\n`
-  if (s.t === 'widget') return `### ${s.title}\n\n${s.body ? s.body + '\n\n' : ''}${WIDGET_NOTE[s.w]}\n`
-  const h = HEXAGRAMS[s.n - 1]
-  return `### ${s.title}\n\n**${h.name}**（${h.fullName}）：${h.gist}\n\n> ${h.guaci}\n\n白话：${h.gcBai}\n\n${h.yao.map((y, i) => `- ${y}　——${h.yaoBai[i]}`).join('\n')}\n`
+  switch (s.t) {
+    case 'text': return `### ${s.tag ? `【${s.tag}】` : ''}${s.title}\n\n${s.body.replace(/\n/g, '  \n')}\n`
+    case 'widget': return `### ${s.title}\n\n${s.body ? s.body + '\n\n' : ''}${WIDGET_NOTE[s.w]}\n`
+    case 'hex': {
+      const h = HEXAGRAMS[s.n - 1]
+      return `### ${s.title}\n\n**${h.name}**（${h.fullName}）：${h.gist}\n\n> ${h.guaci}\n\n白话：${h.gcBai}\n\n${h.yao.map((y, i) => `- ${y}　——${h.yaoBai[i]}`).join('\n')}\n`
+    }
+    case 'quote': return `### ${s.title}\n\n> ${s.text}\n>\n> ——${s.src}\n\n${s.note ?? ''}\n`
+    case 'compare': return `### ${s.title}\n\n${s.focus}\n\n${s.items.map((it) => `- **${it.who}**：${it.view}`).join('\n')}\n\n分歧：${s.diff}\n`
+    case 'teach': return `### ${s.title}\n\n${s.prompt}\n\n${s.points.map((p) => `- ${p}`).join('\n')}\n`
+    case 'task': return `### ${s.title}\n\n${s.items.map((p) => `- [ ] ${p}`).join('\n')}\n${s.tool ? `\n工具：${s.tool}\n` : ''}`
+    case 'chain': return `### ${s.title}\n\n${s.steps.map((p, i) => `${i + 1}. ${p}`).join('\n')}\n`
+    default: {
+      const _exhaustive: never = s
+      return _exhaustive
+    }
+  }
 }
 
 export function lessonMd(l: Lesson) {
@@ -38,11 +68,14 @@ export function lessonMd(l: Lesson) {
     `### 练习`,
     ...l.quiz.map((q, i) => `${i + 1}. ${q.q}\n${q.opts.map((o, k) => `   ${'ABCDEF'[k]}. ${o}`).join('\n')}`),
     `\n<details><summary>答案</summary>\n\n${l.quiz.map((q, i) => `${i + 1}. ${'ABCDEF'[q.a]}　${q.ex}`).join('\n')}\n\n</details>\n`,
+    ...(l.qa?.length ? [`### 问答\n`, ...l.qa.map((item) => `**${item.q}**\n\n${item.a}\n`)] : []),
   ].join('\n')
 }
 
 export function allMd() {
-  return `# 周易 · 梅花易数入门 每日讲义\n\n` + [...UNITS, ...ELECTIVE_UNITS].map((u) => `# ${u.name}\n\n${u.desc}\n\n` + [...LESSONS, ...ELECTIVES].filter((l) => l.unit === u.id).map(lessonMd).join('\n---\n\n')).join('\n')
+  const all = [...LESSONS, ...ELECTIVES]
+  const groups = [...UNITS, ...ELECTIVE_UNITS, ...ADV_UNITS].filter((u) => all.some((l) => l.unit === u.id))
+  return `# 周易 · 梅花易数入门 每日讲义\n\n` + groups.map((u) => `# ${u.name}\n\n${u.desc}\n\n` + all.filter((l) => l.unit === u.id).map(lessonMd).join('\n---\n\n')).join('\n')
 }
 
 const download = (name: string, text: string) => {
@@ -76,6 +109,11 @@ export function HandoutPage() {
               {s.t === 'text' && <Rich text={s.body} />}
               {s.t === 'widget' && <p className="muted">{s.body ? s.body + ' ' : ''}{WIDGET_NOTE[s.w]}</p>}
               {s.t === 'hex' && (() => { const h = HEXAGRAMS[s.n - 1]; return <><p className="classic">{h.guaci}</p><p className="bai">{h.gcBai}</p></> })()}
+              {s.t === 'quote' && <><p className="quote-src">{s.src}</p><p className="classic">{s.text}</p>{s.note && <p className="muted">{s.note}</p>}</>}
+              {s.t === 'compare' && <><p>{s.focus}</p>{s.items.map((it, k) => <p key={k}><b>{it.who}</b>　{it.view}</p>)}<p className="cmp-diff">{s.diff}</p></>}
+              {s.t === 'teach' && <><p>{s.prompt}</p><ul>{s.points.map((p, k) => <li key={k}>{p}</li>)}</ul></>}
+              {s.t === 'task' && <ul>{s.items.map((p, k) => <li key={k}>{p}</li>)}</ul>}
+              {s.t === 'chain' && <ol>{s.steps.map((p, k) => <li key={k}>{p}</li>)}</ol>}
             </div>
           ))}
           <h4>练习</h4>
