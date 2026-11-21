@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import type { Lesson } from '../src/data/types'
+import { SHUOGUA, TUAN, WENYAN, XICI_SHANG, XICI_XIA, XIANG_XIAO, XUGUA, ZAGUA } from '../src/data/yizhuan'
 import { ZHOUYI_TEXT } from '../src/data/zhouyiText'
 
 /** 一条可核对的原文。src 用「乾·卦辞」「系辞上」这种篇章名。 */
@@ -10,14 +11,48 @@ export function normalizeQuote(s: string): string {
   return s.replace(/[\s\p{P}\p{S}]+/gu, '')
 }
 
+const CN = '零一二三四五六七八九'
+const cnNum = (n: number) => (n === 10 ? '十' : n < 10 ? CN[n] : '十' + CN[n - 10])
+
 /**
- * CORPUS builder。现在装入通行本经文（卦辞、爻辞、大象）。
- * 十翼由另一处补上，二选一：
- * 1. 在 src/data/yizhuan.ts 导出 `CORPUS`（或 `YIZHUAN` / `PASSAGES`）：`{ src, text }[]`，或 `{ [src]: text }`。本文件会在文件出现后自动读入。
- * 2. 直接把条目传给 buildCorpus(extra)，或在 jingwen 之后追加。
+ * CORPUS：通行本经文，加上十翼。
+ * 篇章名用「乾·彖」「乾·初九小象」「系辞上·第1章」这种。第N章同时收阿拉伯数字和中文数字。
  */
 export function buildCorpus(extra: CorpusEntry[] = []): CorpusEntry[] {
-  return [...jingwenCorpus(), ...extra]
+  return [...jingwenCorpus(), ...yizhuanCorpus(), ...extra]
+}
+
+function yizhuanCorpus(): CorpusEntry[] {
+  const out: CorpusEntry[] = []
+  ZHOUYI_TEXT.forEach((g, i) => {
+    out.push({ src: `${g.name}·彖`, text: TUAN[i] })
+    out.push({ src: `${g.name}·小象`, text: XIANG_XIAO[i].join('\n') })
+    g.yao.forEach((y, k) => {
+      const label = y.split(/[：:]/)[0]?.trim()
+      if (label && XIANG_XIAO[i][k]) out.push({ src: `${g.name}·${label}小象`, text: XIANG_XIAO[i][k] })
+    })
+  })
+  out.push({ src: '乾·文言', text: WENYAN.qian.join('\n') })
+  out.push({ src: '坤·文言', text: WENYAN.kun.join('\n') })
+  out.push({ src: '文言', text: [...WENYAN.qian, ...WENYAN.kun].join('\n') })
+  const books: [string, string[][]][] = [
+    ['系辞上', XICI_SHANG],
+    ['系辞下', XICI_XIA],
+    ['说卦', SHUOGUA],
+  ]
+  for (const [name, chapters] of books) {
+    out.push({ src: name, text: chapters.map((c) => c.join('\n')).join('\n') })
+    chapters.forEach((c, i) => {
+      const text = c.join('\n')
+      out.push({ src: `${name}·第${i + 1}章`, text })
+      out.push({ src: `${name}·第${cnNum(i + 1)}章`, text })
+    })
+  }
+  out.push({ src: '序卦', text: [...XUGUA.shang, ...XUGUA.xia].join('\n') })
+  out.push({ src: '序卦·上', text: XUGUA.shang.join('\n') })
+  out.push({ src: '序卦·下', text: XUGUA.xia.join('\n') })
+  out.push({ src: '杂卦', text: ZAGUA.join('\n') })
+  return out
 }
 
 function jingwenCorpus(): CorpusEntry[] {

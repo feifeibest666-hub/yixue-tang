@@ -1,4 +1,7 @@
 import { HEXAGRAMS, TRIGRAMS } from '../src/data/bagua'
+import { SHUOGUA, TUAN, WENYAN, XICI_SHANG, XICI_XIA, XIANG_DA, XIANG_XIAO, XUGUA, ZAGUA } from '../src/data/yizhuan'
+import { ZHOUYI_TEXT } from '../src/data/zhouyiText'
+import { normalizeQuote } from './check-quotes'
 import { BAIHUA } from '../src/data/baihua'
 import { ADV_UNITS, ALL_LESSONS, ELECTIVES, LESSONS, MAIN_DAYS, WIDGET_NAMES, guaLessonDay, guaOfDay, lessonByDay, unitDayRange } from '../src/data/curriculum'
 import { GUA_NOTES } from '../src/data/guaNotes'
@@ -12,6 +15,23 @@ let fail = 0
 const ok = (c: boolean, m: string) => { if (!c) { fail++; console.log('FAIL', m) } }
 
 ok(HEXAGRAMS.length === 64, '64 卦')
+ok(TUAN.length === 64 && XIANG_DA.length === 64 && XIANG_XIAO.length === 64, '十翼卦数')
+ok(TUAN[0].startsWith('大哉乾元'), '乾彖起笔')
+{
+  let xiao = 0
+  XIANG_XIAO.forEach((arr, i) => {
+    const expect = i < 2 ? 7 : 6
+    ok(arr.length === expect, `${ZHOUYI_TEXT[i].name} 小象 ${arr.length}`)
+    xiao += arr.length
+    ok(normalizeQuote(XIANG_DA[i]) === normalizeQuote(ZHOUYI_TEXT[i].xiang), `大象与经文不一致 ${ZHOUYI_TEXT[i].name}`)
+  })
+  ok(xiao === 386, '小象合计 ' + xiao)
+}
+ok(XICI_SHANG.length === 12 && XICI_XIA.length === 12 && XICI_SHANG.every((c) => c.length > 0) && XICI_XIA.every((c) => c.length > 0), '系辞 12+12 章')
+ok(SHUOGUA.length === 11 && SHUOGUA.every((c) => c.length > 0), '说卦 11 章')
+ok(WENYAN.qian.length > 0 && WENYAN.kun.length > 0, '文言乾坤')
+ok(XUGUA.shang.length > 0 && XUGUA.xia.length > 0 && ZAGUA.length > 0, '序卦杂卦')
+ok(XICI_SHANG[8].join('').includes('大衍之数五十') && XICI_XIA[11][0].startsWith('夫乾，天下之至健'), '系辞分章落点')
 ok(new Set(HEXAGRAMS.map((h) => h.lines.join(''))).size === 64, '卦画唯一')
 ok(PINYIN.length === 64, '拼音 64 个: ' + PINYIN.length)
 HEXAGRAMS.forEach((h, i) => {
