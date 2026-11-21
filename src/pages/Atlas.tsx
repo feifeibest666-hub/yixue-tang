@@ -80,6 +80,7 @@ export function GuaDetail({ n }: { n: number }) {
       </section>
 
       <a className="btn primary block" href={`#/gua/${h.n}`}>学这一卦 · 完整一课（自由学）</a>
+      <a className="btn ghost block" href={`#/reader/gua/${h.n}`}>原文对照（含彖象）</a>
 
       <section className="card">
         <h3>卦辞</h3>
