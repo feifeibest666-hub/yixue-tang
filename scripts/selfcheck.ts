@@ -159,3 +159,4 @@ ok(kept.v === 2 && kept.completed[101] === '进阶' && kept.completed[1101] === 
 const corpus = await corpusWithYizhuan()
 checkQuotes(ALL_LESSONS, ok, corpus)
 console.log(fail ? `${fail} 项失败` : '全部通过', '· 主线', main.length, '天 · 进阶', adv.length, '课 · 选修', ELECTIVES.length, '课 · 卡片', ALL_CARDS.length)
+process.exit(fail ? 1 : 0)
